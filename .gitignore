@@ -1,3 +1,4 @@
 .vscode
 raytracer
 output_images/
+output.ppm

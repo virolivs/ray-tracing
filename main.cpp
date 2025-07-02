@@ -7,6 +7,7 @@
 #include "src/lib/point.h"
 #include "src/lib/vector.h"
 #include "src/scene/camera.h"
+#include "src/utils/ObjReader.cpp"
 
 template <typename T>
 T clamp(T value, T min, T max) {
@@ -143,18 +144,21 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
 
 int main()
 {
-    Point camera_position { 0.0f, 0.0f, 5.0f };
-    Point look_at { 0.0f, 0.0f, 0.0f };
-    Vector up_vector { 0.0f, 1.0f, 0.0f };
+    // Point camera_position { 0.0f, 0.0f, 5.0f };
+    // Point look_at { 0.0f, 0.0f, 0.0f };
+    // Vector up_vector { 0.0f, 1.0f, 0.0f };
 
-    float vertical_fov = 90.0f * M_PI / 180.0f;
+    // float vertical_fov = 90.0f * M_PI / 180.0f;
 
-    uint32_t image_height = 500;
-    uint32_t image_width = 500;
+    // uint32_t image_height = 500;
+    // uint32_t image_width = 500;
 
-    Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
+    // Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
 
-    render_scene(camera, "output.ppm", image_width, image_height);
+    // render_scene(camera, "output.ppm", image_width, image_height);
+    objReader obj("inputs/cubo.obj");
+
+    obj.print_faces();
 
     return 0;
 }
