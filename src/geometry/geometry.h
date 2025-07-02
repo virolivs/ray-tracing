@@ -13,8 +13,7 @@ namespace Geometry
     public:
         Point center {};
         float radius {};
-
-        // Atualizado: recebe cor e passa para Hittable
+        
         explicit Sphere(Point center, float radius, Vector color) 
             : Hittable(color), center(center), radius(radius) {}
 
