@@ -4,6 +4,7 @@
 #include "../lib/ray.h"
 #include "../lib/vector.h"
 #include "../raytracer/trace.h"
+#include "../utils/ObjReader.cpp" 
 #include "hittable.h"
 
 namespace Geometry
@@ -13,7 +14,7 @@ namespace Geometry
     public:
         Point center {};
         float radius {};
-        
+
         explicit Sphere(Point center, float radius, Vector color) 
             : Hittable(color), center(center), radius(radius) {}
 
@@ -54,6 +55,29 @@ namespace Geometry
         Triangle(const Triangle&) = default;
         ~Triangle() = default;
         Triangle& operator=(const Triangle&) = default;
+
+        RT::Trace hit(const Ray& ray) const override;
+    };
+    
+
+    class Mesh : public Hittable
+    {
+    public:
+        std::vector<Point> vertices;
+        std::vector<std::array<int, 3>> indices;
+        std::vector<Vector> triangle_normals;
+        std::vector<Vector> vertex_normals;
+
+        explicit Mesh(const std::vector<Point>& vertices,
+                      const std::vector<std::array<int, 3>>& indices,
+                      Vector color);
+
+        explicit Mesh(objReader& reader, Vector color);
+
+        Mesh() = default;
+        Mesh(const Mesh&) = default;
+        ~Mesh() = default;
+        Mesh& operator=(const Mesh&) = default;
 
         RT::Trace hit(const Ray& ray) const override;
     };

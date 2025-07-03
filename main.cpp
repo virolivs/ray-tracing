@@ -75,47 +75,35 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
     std::cout << "Image saved to " << filename << "\n";
 }
 
-int main()
-{
-    Point camera_position { 0.0f, 0.0f, 5.0f };
-    Point look_at { 0.0f, 0.0f, 0.0f };
-    Vector up_vector { 0.0f, 1.0f, 0.0f };
+int main() {
+    // Test
+    // Load OBJ
+    objReader obj("inputs/cubo.obj");
+    Vector mesh_color(0.8f, 0.3f, 0.3f);  // color example
+    Geometry::Mesh mesh(obj, mesh_color);
 
-    float vertical_fov = 90.0f * M_PI / 180.0f;
-    uint32_t image_height = 500;
-    uint32_t image_width = 500;
+    Point ray_origin(0.0f, 0.0f, 5.0f);
+    Vector ray_direction(0.0f, 0.0f, -1.0f);  
+    Ray ray(ray_origin, ray_direction.normalized());
 
-    scene.push_back(std::make_shared<Geometry::Sphere>(
-    Point(2.0f, -4.5f, -2.0f), 0.5f, Vector(1.0f, 0.0f, 0.0f))); // vermelho
+    // Testing intersection //
+    RT::Trace trace = mesh.hit(ray);
 
-    scene.push_back(std::make_shared<Geometry::Sphere>(
-        Point(0.0f, -4.0f, -2.0f), 1.0f, Vector(0.0f, 1.0f, 0.0f))); // verde
-
-    scene.push_back(std::make_shared<Geometry::Sphere>(
-        Point(-3.0f, -3.5f, -2.0f), 1.5f, Vector(0.2f, 0.2f, 0.7f))); // azul
-
-    scene.push_back(std::make_shared<Geometry::Plane>(
-        Point(5.0f, 0.0f, 0.0f), Vector(-1.0f, 0.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f))); // verde
-
-    scene.push_back(std::make_shared<Geometry::Plane>(
-        Point(-5.0f, 0.0f, 0.0f), Vector(1.0f, 0.0f, 0.0f), Vector(1.0f, 0.0f, 0.0f))); // vermelho
-
-    scene.push_back(std::make_shared<Geometry::Plane>(
-        Point(0.0f, -5.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Vector(0.73f, 0.73f, 0.73f))); // branco
-
-    scene.push_back(std::make_shared<Geometry::Plane>(
-        Point(0.0f, 5.0f, 0.0f), Vector(0.0f, -1.0f, 0.0f), Vector(0.73f, 0.73f, 0.73f))); // branco
-
-    scene.push_back(std::make_shared<Geometry::Plane>(
-        Point(0.0f, 0.0f, -5.0f), Vector(0.0f, 0.0f, 1.0f), Vector(0.73f, 0.73f, 0.73f))); // branco
-
-    scene.push_back(std::make_shared<Geometry::Plane>(
-        Point(0.0f, 0.0f, 6.0f), Vector(0.0f, 0.0f, -1.0f), Vector(0.73f, 0.73f, 0.73f))); // branco
-
-
-    Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
-
-    render_scene(camera, "output.ppm", image_width, image_height);
+    if (trace.hit) {
+        std::cout << "Hit detected!\n";
+        std::cout << "t (distance): " << trace.t << "\n";
+        std::cout << "Intersection point: (" << trace.position.x << ", "
+                                            << trace.position.y << ", "
+                                            << trace.position.z << ")\n";
+        std::cout << "Surface normal: (" << trace.normal.x << ", "
+                                         << trace.normal.y << ", "
+                                         << trace.normal.z << ")\n";
+        std::cout << "Mesh color: (" << mesh.color.x << ", "
+                                     << mesh.color.y << ", "
+                                     << mesh.color.z << ")\n";
+    } else {
+        std::cout << "No hit detected.\n";
+    }
 
     return 0;
 }
