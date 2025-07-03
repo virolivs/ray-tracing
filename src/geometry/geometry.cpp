@@ -165,25 +165,42 @@ namespace Geometry
 
 
 Mesh::Mesh(objReader& reader, Vector color)
-        : Hittable(color)
-    {
-        this->vertices = reader.getVertices();
-        const auto& faces = reader.getFaces();
+    : Hittable(color)
+{
+    this->vertices = reader.getVertices();
+    const auto& faces = reader.getFaces();
 
-        for (const auto& face : faces) {
-            std::array<int, 3> tri = {
-                face.verticeIndice[0],
-                face.verticeIndice[1],
-                face.verticeIndice[2]
-            };
-            indices.push_back(tri);
+    indices.reserve(faces.size()); //reserve space
+    triangle_normals.reserve(faces.size());
+    vertex_normals.resize(vertices.size(), Vector(0, 0, 0));
+    std::vector<int> counts(vertices.size(), 0); // Counts how many triangle normals affect each vertex, since a single vertex can be part of a few triangles
 
-            const Point& a = vertices[tri[0]];
-            const Point& b = vertices[tri[1]];
-            const Point& c = vertices[tri[2]];
+    for (const auto& face : faces) {
+        std::array<int, 3> tri = {
+            face.verticeIndice[0],
+            face.verticeIndice[1],
+            face.verticeIndice[2]
+        };
+        indices.push_back(tri);
 
-            Vector normal = cross(b - a, c - a).normalized();
-            triangle_normals.push_back(normal);
+        const Point& a = vertices[tri[0]];
+        const Point& b = vertices[tri[1]];
+        const Point& c = vertices[tri[2]];
+
+        Vector normal = cross(b - a, c - a).normalized();
+        triangle_normals.push_back(normal);
+
+        // Accumulate the triangle normal into each of the triangle's vertices
+        for (int idx : tri) {
+            vertex_normals[idx] += normal;
+            counts[idx]++;
         }
     }
-}
+
+    // Average the accumulated normals for each vertex and normalize
+    for (size_t i = 0; i < vertex_normals.size(); ++i) {
+        if (counts[i] > 0) {
+            vertex_normals[i] = (vertex_normals[i] / float(counts[i])).normalized();
+        }
+    }
+}}
