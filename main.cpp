@@ -85,7 +85,7 @@ int main() {
     uint32_t image_width = 500;
 
     // Load obj
-    objReader obj("inputs/cubo.obj");
+    objReader obj("inputs/mamacos.obj");
 
     // create mesh with an specific color (red)
     auto mesh = std::make_shared<Geometry::Mesh>(obj, Vector(1.0f, 0.0f, 0.0f));

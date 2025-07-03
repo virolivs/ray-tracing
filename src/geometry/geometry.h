@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+#include <array>
 #include "../lib/point.h"
 #include "../lib/ray.h"
 #include "../lib/vector.h"
