@@ -76,18 +76,32 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
 }
 
 int main() {
-    // Test
-    // Load OBJ
-    objReader obj("inputs/cubo.obj");
-    Vector mesh_color(0.8f, 0.3f, 0.3f);  // color example
-    Geometry::Mesh mesh(obj, mesh_color);
+    // Image and camera params
+    Point camera_position { 0.0f, 0.0f, 5.0f };
+    Point look_at { 0.0f, 0.0f, 0.0f };
+    Vector up_vector { 0.0f, 1.0f, 0.0f };
+    float vertical_fov = 90.0f * M_PI / 180.0f; // radians
+    uint32_t image_height = 500;
+    uint32_t image_width = 500;
 
+    // Load obj
+    objReader obj("inputs/cubo.obj");
+
+    // create mesh with an specific color (red)
+    auto mesh = std::make_shared<Geometry::Mesh>(obj, Vector(1.0f, 0.0f, 0.0f));
+
+    // add mash to scene
+    scene.push_back(mesh);
+
+    Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
+    render_scene(camera, "output.ppm", image_width, image_height);
+
+    // Intersection test //
     Point ray_origin(0.0f, 0.0f, 5.0f);
     Vector ray_direction(0.0f, 0.0f, -1.0f);  
     Ray ray(ray_origin, ray_direction.normalized());
 
-    // Testing intersection //
-    RT::Trace trace = mesh.hit(ray);
+    RT::Trace trace = mesh->hit(ray);
 
     if (trace.hit) {
         std::cout << "Hit detected!\n";
@@ -98,12 +112,13 @@ int main() {
         std::cout << "Surface normal: (" << trace.normal.x << ", "
                                          << trace.normal.y << ", "
                                          << trace.normal.z << ")\n";
-        std::cout << "Mesh color: (" << mesh.color.x << ", "
-                                     << mesh.color.y << ", "
-                                     << mesh.color.z << ")\n";
+        std::cout << "Mesh color: (" << mesh->color.x << ", "
+                                     << mesh->color.y << ", "
+                                     << mesh->color.z << ")\n";
     } else {
         std::cout << "No hit detected.\n";
     }
 
     return 0;
 }
+
