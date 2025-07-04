@@ -4,7 +4,6 @@
 #include "../raytracer/trace.h"
 #include "../lib/vector.h" 
 
-// This class must define every possible 
 class Hittable {
 public:
     Vector color;

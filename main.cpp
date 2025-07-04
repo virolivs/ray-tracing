@@ -75,7 +75,7 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
     std::cout << "Image saved to " << filename << "\n";
 }
 
-int main() {
+int main() {create mesh with an specific color (red)
     // Image and camera params
     Point camera_position { 0.0f, 0.0f, 5.0f };
     Point look_at { 0.0f, 0.0f, 0.0f };
@@ -84,19 +84,24 @@ int main() {
     uint32_t image_height = 500;
     uint32_t image_width = 500;
 
-    // Load obj
-    objReader obj("inputs/mamacos.obj");
+    // Initializes the camera with the defined parameters
+    Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
 
-    // create mesh with an specific color (red)
+    // Load the object
+    objReader obj("inputs/cubo.obj");
+
+    // Create a mesh from the object with a specific color (red)
     auto mesh = std::make_shared<Geometry::Mesh>(obj, Vector(1.0f, 0.0f, 0.0f));
 
-    // add mash to scene
+    // Add the mash to scene
     scene.push_back(mesh);
 
-    Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
+    // Renders the scene to a .ppm image file.
     render_scene(camera, "output.ppm", image_width, image_height);
 
-    // Intersection test //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Intersection test
     Point ray_origin(0.0f, 0.0f, 5.0f);
     Vector ray_direction(0.0f, 0.0f, -1.0f);  
     Ray ray(ray_origin, ray_direction.normalized());
@@ -106,15 +111,9 @@ int main() {
     if (trace.hit) {
         std::cout << "Hit detected!\n";
         std::cout << "t (distance): " << trace.t << "\n";
-        std::cout << "Intersection point: (" << trace.position.x << ", "
-                                            << trace.position.y << ", "
-                                            << trace.position.z << ")\n";
-        std::cout << "Surface normal: (" << trace.normal.x << ", "
-                                         << trace.normal.y << ", "
-                                         << trace.normal.z << ")\n";
-        std::cout << "Mesh color: (" << mesh->color.x << ", "
-                                     << mesh->color.y << ", "
-                                     << mesh->color.z << ")\n";
+        std::cout << "Intersection point: (" << trace.position.x << ", " << trace.position.y << ", " << trace.position.z << ")\n";
+        std::cout << "Surface normal: (" << trace.normal.x << ", " << trace.normal.y << ", " << trace.normal.z << ")\n";
+        std::cout << "Mesh color: (" << mesh->color.x << ", " << mesh->color.y << ", " << mesh->color.z << ")\n";
     } else {
         std::cout << "No hit detected.\n";
     }

@@ -17,8 +17,7 @@ namespace Geometry
         Point center {};
         float radius {};
 
-        explicit Sphere(Point center, float radius, Vector color) 
-            : Hittable(color), center(center), radius(radius) {}
+        explicit Sphere(Point center, float radius, Vector color) : Hittable(color), center(center), radius(radius) {}
 
         Sphere() = default;
         Sphere(const Sphere&) = default;
@@ -34,8 +33,7 @@ namespace Geometry
         Point point {};
         Vector normal {};
 
-        explicit Plane(Point point, Vector normal, Vector color) 
-            : Hittable(color), point(point), normal(normal) {}
+        explicit Plane(Point point, Vector normal, Vector color) : Hittable(color), point(point), normal(normal) {}
 
         Plane() = default;
         Plane(const Plane&) = default;
@@ -50,8 +48,7 @@ namespace Geometry
     public:
         Point a, b, c {};
 
-        explicit Triangle(Point a, Point b, Point c, Vector color)
-            : Hittable(color), a(a), b(b), c(c) {}
+        explicit Triangle(Point a, Point b, Point c, Vector color) : Hittable(color), a(a), b(b), c(c) {}
 
         Triangle() = default;
         Triangle(const Triangle&) = default;
@@ -61,7 +58,6 @@ namespace Geometry
         RT::Trace hit(const Ray& ray) const override;
     };
     
-
     class Mesh : public Hittable
     {
     public:
@@ -70,9 +66,7 @@ namespace Geometry
         std::vector<Vector> triangle_normals;
         std::vector<Vector> vertex_normals;
 
-        explicit Mesh(const std::vector<Point>& vertices,
-                      const std::vector<std::array<int, 3>>& indices,
-                      Vector color);
+        explicit Mesh(const std::vector<Point>& vertices, const std::vector<std::array<int, 3>>& indices, Vector color);
 
         explicit Mesh(objReader& reader, Vector color);
 
