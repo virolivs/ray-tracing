@@ -46,14 +46,14 @@ namespace Geometry
     class Triangle : public Hittable
     {
     public:
-        Point a, b, c {};
+        Point v0, v1, v2;
 
-        explicit Triangle(Point a, Point b, Point c, Vector color) : Hittable(color), a(a), b(b), c(c) {}
+        explicit Triangle(Point a, Point b, Point c, Vector color)
+            : Hittable(color), v0(a), v1(b), v2(c) {}
 
-        Triangle() = default;
-        Triangle(const Triangle&) = default;
-        ~Triangle() = default;
-        Triangle& operator=(const Triangle&) = default;
+        // Se quiser outro construtor com cor padrão branca:
+        Triangle(Point a, Point b, Point c)
+            : Hittable(Vector(1,1,1)), v0(a), v1(b), v2(c) {}
 
         RT::Trace hit(const Ray& ray) const override;
     };

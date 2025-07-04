@@ -83,72 +83,93 @@ namespace Geometry
 
     RT::Trace Triangle::hit(const Ray& ray) const
     {
-        // TODO: Implement the hit function for Triangle
+        // Compute the face normal using the cross product of two edges of the triangle
+        Vector normal = cross(v1 - v0, v2 - v0).normalized();
 
-        bool hit { false };
-        Point origin { ray.origin };
-        Point position {};
-        Vector normal {};
-        return RT::Trace { hit, 0.0f, origin, position, normal };
+        // Calculate the dot product between the triangle normal and the ray direction
+        float denom = dot(normal, ray.direction);
+
+        // If the ray is nearly parallel to the triangle plane, no hit
+        if (std::abs(denom) < 1e-6f) return RT::Trace(false, 0, ray.origin, Point{}, Vector{});
+
+        // Calculate distance t along the ray where it intersects the triangle plane
+        float t = dot(normal, v0 - ray.origin) / denom;
+
+        // If intersection is behind the ray origin, no hit
+        if (t < 0) return RT::Trace(false, 0, ray.origin, Point{}, Vector{});
+
+        // Compute the intersection point on the plane
+        Point p = ray.at(t);
+
+        // Prepare vectors for barycentric coordinate calculation
+        Vector u = v1 - v0;
+        Vector v = v2 - v0;
+        Vector w = p - v0;
+
+        // Compute dot products needed for barycentric coordinates
+        float uu = dot(u, u);
+        float uv = dot(u, v);
+        float vv = dot(v, v);
+        float wu = dot(w, u);
+        float wv = dot(w, v);
+
+        // Compute the denominator of the barycentric coordinate formula
+        float D = uv * uv - uu * vv;
+
+        // Compute barycentric coordinates s and t_bary
+        float s = (uv * wv - vv * wu) / D;
+        float t_bary = (uv * wu - uu * wv) / D;
+
+        // Check if point lies inside the triangle using barycentric conditions
+        if (s >= 0 && t_bary >= 0 && (s + t_bary) <= 1)
+        {
+            // If inside, return a successful hit record with intersection details
+            return RT::Trace {
+                true,
+                t,
+                ray.origin,
+                p,
+                normal
+            };
+        }
+
+        // Otherwise, no hit
+        return RT::Trace(false, 0, ray.origin, Point{}, Vector{});
     }
 
     RT::Trace Mesh::hit(const Ray& ray) const
-    // Performs ray-triangle intersection tests against all triangles in the mesh.
-    // For each triangle, it checks if the ray intersects its plane and then
-    // uses barycentric coordinates to determine if the intersection point lies inside the triangle.
     {
-        bool hit_any = false;
-        float closest_t = std::numeric_limits<float>::max();
-        Point hit_position {};
-        Vector hit_normal {};
+        bool hit_any = false;                    // Flag to track if any triangle was hit
+        float closest_t = std::numeric_limits<float>::max();  // Closest hit distance initialized to max
+        Point hit_position {};                   // Stores the closest hit position
+        Vector hit_normal {};                    // Stores the normal at closest hit
 
+        // Iterate over all triangles defined by vertex indices
         for (size_t i = 0; i < indices.size(); ++i)
         {
+            // Extract vertex indices for the current triangle
             const auto& [i0, i1, i2] = indices[i];
             const Point& v0 = vertices[i0];
             const Point& v1 = vertices[i1];
             const Point& v2 = vertices[i2];
-            const Vector& normal = triangle_normals[i];
 
-            // Calculate the denominator of the intersection formula (dot product between triangle normal and ray direction)
-            float denom = dot(normal, ray.direction);
+            // Create a Triangle instance with the current vertices
+            Triangle triangle(v0, v1, v2);
 
-            // If denom is near zero, the ray is parallel to the triangle plane, so skip this triangle
-            if (std::abs(denom) < 1e-6f) continue; // ## check this later!!!! 
+            // Perform ray-triangle intersection test
+            RT::Trace result = triangle.hit(ray);
 
-            // Calculate the parameter t for the ray-plane intersection
-            float t = dot(normal, v0 - ray.origin) / denom;
-
-            // If t is negative, the intersection is behind the ray origin; if t >= closest_t, 
-            // we've already found a closer intersection, so skip this one
-            if (t < 0 || t >= closest_t) continue;
-
-            Point p = ray.at(t);
-
-            Vector u = v1 - v0;
-            Vector v = v2 - v0;
-            Vector w = p - v0;
-
-            float uu = dot(u, u);
-            float uv = dot(u, v);
-            float vv = dot(v, v);
-            float wu = dot(w, u);
-            float wv = dot(w, v);
-            float D = uv * uv - uu * vv;
-
-            float s = (uv * wv - vv * wu) / D;
-            float t_bary = (uv * wu - uu * wv) / D;
-            
-            // Barycentric condition
-            if (s >= 0 && t_bary >= 0 && (s + t_bary) <= 1)
+            // If hit and closer than any previous hit, update closest hit info
+            if (result.hit && result.t < closest_t)
             {
                 hit_any = true;
-                closest_t = t;
-                hit_position = p;
-                hit_normal = normal.normalized();
+                closest_t = result.t;
+                hit_position = result.position;
+                hit_normal = result.normal;
             }
         }
 
+        // If any hit found, return the closest hit details
         if (hit_any)
         {
             return RT::Trace {
@@ -160,47 +181,50 @@ namespace Geometry
             };
         }
 
+        // Otherwise, return no-hit record
         return RT::Trace { false, 0, ray.origin, {}, {} };
     }
 
+    Mesh::Mesh(objReader& reader, Vector color) : Hittable(color)  // Call base constructor with color
+    {
+        this->vertices = reader.getVertices();     // Load mesh vertices from objReader
+        const auto& faces = reader.getFaces();     // Load mesh faces (triangles) from objReader
 
-Mesh::Mesh(objReader& reader, Vector color)
-    : Hittable(color)
-{
-    this->vertices = reader.getVertices();
-    const auto& faces = reader.getFaces();
+        indices.reserve(faces.size());              // Reserve space for triangle indices
+        triangle_normals.reserve(faces.size());    // Reserve space for triangle normals
+        vertex_normals.resize(vertices.size(), Vector(0, 0, 0));  // Initialize vertex normals to zero
+        std::vector<int> counts(vertices.size(), 0);              // Track how many triangles share each vertex
 
-    indices.reserve(faces.size()); //reserve space
-    triangle_normals.reserve(faces.size());
-    vertex_normals.resize(vertices.size(), Vector(0, 0, 0));
-    std::vector<int> counts(vertices.size(), 0); // Counts how many triangle normals affect each vertex, since a single vertex can be part of a few triangles
+        // Iterate over each face (triangle) in the mesh
+        for (const auto& face : faces) {
+            // Store vertex indices for this triangle
+            std::array<int, 3> tri = {
+                face.verticeIndice[0],
+                face.verticeIndice[1],
+                face.verticeIndice[2]
+            };
+            indices.push_back(tri);   // Add triangle indices to mesh
 
-    for (const auto& face : faces) {
-        std::array<int, 3> tri = {
-            face.verticeIndice[0],
-            face.verticeIndice[1],
-            face.verticeIndice[2]
-        };
-        indices.push_back(tri);
+            // Compute normal for this triangle face
+            const Point& a = vertices[tri[0]];
+            const Point& b = vertices[tri[1]];
+            const Point& c = vertices[tri[2]];
 
-        const Point& a = vertices[tri[0]];
-        const Point& b = vertices[tri[1]];
-        const Point& c = vertices[tri[2]];
+            Vector normal = cross(b - a, c - a).normalized();
+            triangle_normals.push_back(normal);  // Store the face normal
 
-        Vector normal = cross(b - a, c - a).normalized();
-        triangle_normals.push_back(normal);
+            // Accumulate this face normal into each vertex normal for smooth shading
+            for (int idx : tri) {
+                vertex_normals[idx] += normal;   // Sum normals for averaging
+                counts[idx]++;                   // Increment count of faces sharing this vertex
+            }
+        }
 
-        // Accumulate the triangle normal into each of the triangle's vertices
-        for (int idx : tri) {
-            vertex_normals[idx] += normal;
-            counts[idx]++;
+        // Normalize the accumulated vertex normals by averaging
+        for (size_t i = 0; i < vertex_normals.size(); ++i) {
+            if (counts[i] > 0) {
+                vertex_normals[i] = (vertex_normals[i] / float(counts[i])).normalized();
+            }
         }
     }
-
-    // Average the accumulated normals for each vertex and normalize
-    for (size_t i = 0; i < vertex_normals.size(); ++i) {
-        if (counts[i] > 0) {
-            vertex_normals[i] = (vertex_normals[i] / float(counts[i])).normalized();
-        }
-    }
-}}
+}

@@ -97,7 +97,7 @@ int main() {
     Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
 
     // Load the object
-    objReader obj("inputs/cubo.obj");
+    objReader obj("inputs/mamaco.obj");
 
     // Create a mesh from the object
     auto mesh = std::make_shared<Geometry::Mesh>(obj, obj.getKd());
