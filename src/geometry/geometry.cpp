@@ -1,5 +1,6 @@
 #include <cmath>
 #include "geometry.h"
+#include <memory> 
 
 namespace Geometry
 {
@@ -227,4 +228,18 @@ namespace Geometry
             }
         }
     }
+
+std::shared_ptr<Mesh> transformMesh(const Mesh& original, const Matrix& transform) {
+    auto new_mesh = std::make_shared<Geometry::Mesh>(original);  
+
+    for (size_t i = 0; i < new_mesh->vertices.size(); ++i) {
+        new_mesh->vertices[i] = transform.applyToPoint(original.vertices[i]);
+    }
+
+    for (size_t i = 0; i < new_mesh->vertex_normals.size(); ++i) {
+        new_mesh->vertex_normals[i] = transform.applyToVector(original.vertex_normals[i]).normalized();
+    }
+
+    return new_mesh;
+} 
 }

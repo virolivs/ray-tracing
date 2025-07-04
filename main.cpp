@@ -13,7 +13,8 @@
 #include "src/lib/vector.h"
 #include "src/scene/camera.h"
 #include "src/utils/ObjReader.cpp"
-
+#include "src/matrix/matrix.h"
+#include "src/matrix/matrixTransforms.h"
 
 template <typename T>
 T clamp(T value, T min, T max) {
@@ -85,48 +86,70 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
 }
 
 int main() {
-    // Image and camera params
-    Point camera_position { 0.0f, 0.0f, 5.0f };
+    // Camera setup
+    Point camera_position { 3.0f, 3.0f, 5.0f };  // Camera positioned off the main axes for better 3D perception
     Point look_at { 0.0f, 0.0f, 0.0f };
     Vector up_vector { 0.0f, 1.0f, 0.0f };
-    float vertical_fov = 90.0f * M_PI / 180.0f; // radians
+    float vertical_fov = 90.0f * M_PI / 180.0f;
     uint32_t image_height = 500;
     uint32_t image_width = 500;
 
-    // Initializes the camera with the defined parameters
+    // Load mesh from OBJ file
+    objReader obj("inputs/cubo.obj");
+    auto original_mesh = std::make_shared<Geometry::Mesh>(obj, Vector(1.0f, 0.0f, 0.0f)); // Red color for original mesh
+
+    // Camera creation
     Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
 
-    // Load the object
-    objReader obj("inputs/mamaco.obj");
+    scene.push_back(original_mesh);
+    render_scene(camera, "outputs/original.ppm", image_width, image_height);
 
-    // Create a mesh from the object
-    auto mesh = std::make_shared<Geometry::Mesh>(obj, obj.getKd());
+    // TEST 1: Translation along Z-axis (depth effect)
+    Matrix translation = translationMatrix(0.0f, 0.0f, -2.0f);  
+    auto translated_mesh = Geometry::transformMesh(*original_mesh, translation);
+    translated_mesh->color = Vector(0.0f, 0.0f, 1.0f);  // Blue color
 
-    // Add the mash to scene
-    scene.push_back(mesh);
+    scene.clear();
+    scene.push_back(translated_mesh);
+    render_scene(camera, "outputs/test1_translation_z.ppm", image_width, image_height);
 
-    // Renders the scene to a .ppm image file.
-    render_scene(camera, "output.ppm", image_width, image_height);
+    // TEST 2: Rotation around Y-axis (lateral rotation)
+    Matrix rotation_y = rotationYMatrix(M_PI / 4);  
+    auto rotated_y_mesh = Geometry::transformMesh(*original_mesh, rotation_y);
+    rotated_y_mesh->color = Vector(0.0f, 1.0f, 0.0f);  // Green color
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    scene.clear();
+    scene.push_back(rotated_y_mesh);
+    render_scene(camera, "outputs/test2_rotation_y.ppm", image_width, image_height);
 
-    // Intersection test
-    Point ray_origin(0.0f, 0.0f, 5.0f);
-    Vector ray_direction(0.0f, 0.0f, -1.0f);  
-    Ray ray(ray_origin, ray_direction.normalized());
+    // TEST 3: Rotation around X-axis (tilt up/down)
+    Matrix rotation_x = rotationXMatrix(M_PI / 6);  
+    auto rotated_x_mesh = Geometry::transformMesh(*original_mesh, rotation_x);
+    rotated_x_mesh->color = Vector(1.0f, 1.0f, 0.0f);  // Yellow color
 
-    RT::Trace trace = mesh->hit(ray);
+    scene.clear();
+    scene.push_back(rotated_x_mesh);
+    render_scene(camera, "outputs/test3_rotation_x.ppm", image_width, image_height);
 
-    if (trace.hit) {
-        std::cout << "Hit detected!\n";
-        std::cout << "t (distance): " << trace.t << "\n";
-        std::cout << "Intersection point: (" << trace.position.x << ", " << trace.position.y << ", " << trace.position.z << ")\n";
-        std::cout << "Surface normal: (" << trace.normal.x << ", " << trace.normal.y << ", " << trace.normal.z << ")\n";
-        std::cout << "Mesh color: (" << mesh->color.x << ", " << mesh->color.y << ", " << mesh->color.z << ")\n";
-    } else {
-        std::cout << "No hit detected.\n";
-    }
+    // TEST 4: Non-uniform scaling (deforms the cube)
+    Matrix scale = scaleMatrix(1.0f, 2.0f, 0.5f);  
+    auto scaled_mesh = Geometry::transformMesh(*original_mesh, scale);
+    scaled_mesh->color = Vector(1.0f, 0.0f, 1.0f);  // Magenta color
+
+    scene.clear();
+    scene.push_back(scaled_mesh);
+    render_scene(camera, "outputs/test4_nonuniform_scale.ppm", image_width, image_height);
+
+    // TEST 5: Combined transformations - translation + rotations on X and Y axes
+    Matrix combined = translationMatrix(0.0f, -1.0f, -1.0f) *
+                      rotationYMatrix(M_PI / 6) *
+                      rotationXMatrix(M_PI / 6);
+    auto combined_mesh = Geometry::transformMesh(*original_mesh, combined);
+    combined_mesh->color = Vector(0.3f, 0.7f, 0.2f);  // Custom greenish color
+
+    scene.clear();
+    scene.push_back(combined_mesh);
+    render_scene(camera, "outputs/test5_combined.ppm", image_width, image_height);
 
     return 0;
 }
-

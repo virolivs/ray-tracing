@@ -60,6 +60,22 @@ Matrix rotationZMatrix(float angle) {
     return m;
 }
 
+// Returns a rotation matrix around the X-axis (3D rotation)
+Matrix rotationXMatrix(float angle) {
+    Matrix m = identityMatrix();
+
+    float c = std::cos(angle);
+    float s = std::sin(angle);
+
+    m.data[1][1] = c;
+    m.data[1][2] = -s;
+    m.data[2][1] = s;
+    m.data[2][2] = c;
+
+    return m;
+}
+
+
 // Returns a reflection matrix over the X-axis
 Matrix reflectionXMatrix() {
     Matrix m = identityMatrix();

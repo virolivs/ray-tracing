@@ -7,6 +7,7 @@
 #include "../lib/vector.h"
 #include "../raytracer/trace.h"
 #include "../utils/ObjReader.cpp" 
+#include "../matrix/matrix.h"
 #include "hittable.h"
 
 namespace Geometry
@@ -77,4 +78,6 @@ namespace Geometry
 
         RT::Trace hit(const Ray& ray) const override;
     };
+
+    std::shared_ptr<Mesh> transformMesh(const Mesh& original, const Matrix& transform);
 }
