@@ -26,7 +26,6 @@ namespace RT
 
 inline std::ostream& operator<<(std::ostream& os, const RT::Trace& t)
 {
-    os << "Trace(" << std::boolalpha << t.hit << ", " << t.origin
-       << ", " << t.position << ", " << t.normal << ")";
+    os << "Trace(" << std::boolalpha << t.hit << ", " << t.origin << ", " << t.position << ", " << t.normal << ")";
     return os;
 }

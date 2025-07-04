@@ -75,7 +75,7 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
     std::cout << "Image saved to " << filename << "\n";
 }
 
-int main() {create mesh with an specific color (red)
+int main() {
     // Image and camera params
     Point camera_position { 0.0f, 0.0f, 5.0f };
     Point look_at { 0.0f, 0.0f, 0.0f };
@@ -88,10 +88,10 @@ int main() {create mesh with an specific color (red)
     Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
 
     // Load the object
-    objReader obj("inputs/cubo.obj");
+    objReader obj("inputs/mamaco.obj");
 
     // Create a mesh from the object with a specific color (red)
-    auto mesh = std::make_shared<Geometry::Mesh>(obj, Vector(1.0f, 0.0f, 0.0f));
+    auto mesh = std::make_shared<Geometry::Mesh>(obj, obj.getKd());
 
     // Add the mash to scene
     scene.push_back(mesh);
