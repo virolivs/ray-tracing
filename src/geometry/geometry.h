@@ -8,6 +8,7 @@
 #include "../raytracer/trace.h"
 #include "../utils/ObjReader.cpp" 
 #include "hittable.h"
+#include "../matrix/matrix.h"
 
 namespace Geometry
 {
@@ -51,7 +52,6 @@ namespace Geometry
         explicit Triangle(Point a, Point b, Point c, Vector color)
             : Hittable(color), v0(a), v1(b), v2(c) {}
 
-        // Se quiser outro construtor com cor padrão branca:
         Triangle(Point a, Point b, Point c)
             : Hittable(Vector(1,1,1)), v0(a), v1(b), v2(c) {}
 
@@ -65,9 +65,9 @@ namespace Geometry
         std::vector<std::array<int, 3>> indices;
         std::vector<Vector> triangle_normals;
         std::vector<Vector> vertex_normals;
+        std::vector<Triangle> triangles;
 
         explicit Mesh(const std::vector<Point>& vertices, const std::vector<std::array<int, 3>>& indices, Vector color);
-
         explicit Mesh(objReader& reader, Vector color);
 
         Mesh() = default;
@@ -77,4 +77,5 @@ namespace Geometry
 
         RT::Trace hit(const Ray& ray) const override;
     };
+    std::shared_ptr<Mesh> transformMesh(const Mesh& original, const Matrix& transform);
 }

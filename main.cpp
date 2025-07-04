@@ -1,9 +1,10 @@
+#define _USE_MATH_DEFINES
+
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <memory>
 #include <limits>
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "src/geometry/geometry.h"
@@ -13,6 +14,8 @@
 #include "src/lib/vector.h"
 #include "src/scene/camera.h"
 #include "src/utils/ObjReader.cpp"
+#include "src/matrix/matrix.h"
+#include "src/matrix/matrixTransforms.h"
 
 
 template <typename T>
@@ -20,39 +23,32 @@ T clamp(T value, T min, T max) {
     return (value < min) ? min : (value > max) ? max : value;
 }
 
+
 std::vector<std::shared_ptr<Hittable>> scene;
 
-Vector color(const Ray& ray) {
-    // Initialize the closest intersection distance to a very large number
-    float closest_t = std::numeric_limits<float>::max();
 
-    // Store the resulting color and a flag to check if the ray hits anything
+Vector color(const Ray& ray) {
+    float closest_t = std::numeric_limits<float>::max();
     Vector final_color;
     bool any_hit = false;
 
-    // Iterate over all objects in the scene and find the closest intersection
     for (const auto& object : scene) {
         auto hit_result = object->hit(ray);
         if (hit_result.hit && hit_result.t < closest_t) {
             closest_t = hit_result.t;
-            final_color = object->color;  // Use the object's color if it's the closest hit so far
+            final_color = hit_result.color;
             any_hit = true;
         }
     }
 
-    // If the ray didn't hit anything, return a gradient background color (sky)
     if (!any_hit) {
         Vector unit_direction = ray.direction.normalized();
         float t = 0.5f * (unit_direction.y + 1.0f);
-
-        // Interpolates between white and blue depending on the ray's vertical direction
         return Vector(1.0f, 1.0f, 1.0f) * (1.0f - t) + Vector(0.5f, 0.7f, 1.0f) * t;
     }
 
-    // Return the color of the closest object hit by the ray
     return final_color;
 }
-
 
 
 void render_scene(const Camera& camera, const std::string& filename, uint32_t image_width, uint32_t image_height)
@@ -86,7 +82,7 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
 
 int main() {
     // Image and camera params
-    Point camera_position { 0.0f, 0.0f, 5.0f };
+    Point camera_position { 3.0f, 3.0f, 5.0f };
     Point look_at { 0.0f, 0.0f, 0.0f };
     Vector up_vector { 0.0f, 1.0f, 0.0f };
     float vertical_fov = 90.0f * M_PI / 180.0f; // radians
@@ -97,36 +93,60 @@ int main() {
     Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
 
     // Load the object
-    objReader obj("inputs/mamaco.obj");
+    objReader obj("inputs/cubo.obj");
 
-    // Create a mesh from the object
-    auto mesh = std::make_shared<Geometry::Mesh>(obj, obj.getKd());
+    ////// OBJECT VISUALIZATION //////
 
-    // Add the mash to scene
-    scene.push_back(mesh);
+    // TEST 0: Object visualization
+    auto original_mesh = std::make_shared<Geometry::Mesh>(obj, obj.getKd());
+    scene.push_back(original_mesh);
+    render_scene(camera, "outputs/original.ppm", image_width, image_height);
+    scene.clear();
 
-    // Renders the scene to a .ppm image file.
-    render_scene(camera, "output.ppm", image_width, image_height);
+    // TEST 1: Translation
+    Matrix translation = translationMatrix(0.0f, 0.0f, 2.0f);
+    auto transladed_mesh = Geometry::transformMesh(*original_mesh, translation);
+    scene.push_back(transladed_mesh);
+    render_scene(camera, "outputs/transladed.ppm", image_width, image_height);
+    scene.clear();
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // TEST 2: Rotation
+    Matrix rotation_y = rotationMatrix('Y', M_PI / 4);
+    auto rotated_mesh = Geometry::transformMesh(*original_mesh, rotation_y);
+    scene.push_back(rotated_mesh);
+    render_scene(camera, "outputs/rotated.ppm", image_width, image_height);
+    scene.clear();
 
-    // Intersection test
-    Point ray_origin(0.0f, 0.0f, 5.0f);
-    Vector ray_direction(0.0f, 0.0f, -1.0f);  
-    Ray ray(ray_origin, ray_direction.normalized());
+    // TEST 3: Scale
+    Matrix scale = scaleMatrix(1.0f, 2.0f, 0.5f);  
+    auto scaled_mesh = Geometry::transformMesh(*original_mesh, scale);
+    scene.push_back(scaled_mesh);
+    render_scene(camera, "outputs/scaled.ppm", image_width, image_height);
+    scene.clear();
 
-    RT::Trace trace = mesh->hit(ray);
+    // TEST 4: Shear matrix
+    Matrix shear = shearMatrix(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    auto sheared_mesh = Geometry::transformMesh(*original_mesh, shear);
+    scene.push_back(sheared_mesh);
+    render_scene(camera, "outputs/sheared.ppm", image_width, image_height);
+    scene.clear();
 
-    if (trace.hit) {
-        std::cout << "Hit detected!\n";
-        std::cout << "t (distance): " << trace.t << "\n";
-        std::cout << "Intersection point: (" << trace.position.x << ", " << trace.position.y << ", " << trace.position.z << ")\n";
-        std::cout << "Surface normal: (" << trace.normal.x << ", " << trace.normal.y << ", " << trace.normal.z << ")\n";
-        std::cout << "Mesh color: (" << mesh->color.x << ", " << mesh->color.y << ", " << mesh->color.z << ")\n";
-    } else {
-        std::cout << "No hit detected.\n";
-    }
+    // TEST 5: Reflection across the XY plane (inverte Z)
+    Matrix reflection = reflectionMatrix(false, false, true);
+    auto reflected_mesh = Geometry::transformMesh(*original_mesh, reflection);
+    scene.push_back(reflected_mesh);
+    render_scene(camera, "outputs/reflected.ppm", image_width, image_height);
+    scene.clear();
+
+    // TEST 6: Combined matrix
+    Matrix combined = 
+        translationMatrix(0.0f, -1.0f, -1.0f) * rotationMatrix('Y', M_PI / 6) * rotationMatrix('X', M_PI / 6) * 
+        shearMatrix(0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) * scaleMatrix(1.2f, 0.8f, 1.0f);
+
+    auto combined_mesh = Geometry::transformMesh(*original_mesh, combined);
+    scene.push_back(combined_mesh);
+    render_scene(camera, "outputs/combined.ppm", image_width, image_height);
+    scene.clear();
 
     return 0;
 }
-

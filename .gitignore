@@ -1,3 +1,2 @@
 .vscode
-output_images/
-output.ppm
+*.ppm
