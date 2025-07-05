@@ -49,11 +49,14 @@ namespace Geometry
     public:
         Point v0, v1, v2;
 
-        explicit Triangle(Point a, Point b, Point c, Vector color)
-            : Hittable(color), v0(a), v1(b), v2(c) {}
+        explicit Triangle(Point a, Point b, Point c, Vector color) : Hittable(color), v0(a), v1(b), v2(c) {}
 
-        Triangle(Point a, Point b, Point c)
-            : Hittable(Vector(1,1,1)), v0(a), v1(b), v2(c) {}
+        Triangle(Point a, Point b, Point c) : Hittable(Vector(1,1,1)), v0(a), v1(b), v2(c) {}
+
+        Triangle() = default;
+        Triangle(const Triangle&) = default;
+        ~Triangle() = default;
+        Triangle& operator=(const Triangle&) = default;
 
         RT::Trace hit(const Ray& ray) const override;
     };
@@ -65,9 +68,12 @@ namespace Geometry
         std::vector<std::array<int, 3>> indices;
         std::vector<Vector> triangle_normals;
         std::vector<Vector> vertex_normals;
-        std::vector<Triangle> triangles;
+        std::vector<Vector> face_colors;
 
-        explicit Mesh(const std::vector<Point>& vertices, const std::vector<std::array<int, 3>>& indices, Vector color);
+        explicit Mesh(const std::vector<Point>& vertices,
+                    const std::vector<std::array<int, 3>>& indices,
+                    Vector color);
+
         explicit Mesh(objReader& reader, Vector color);
 
         Mesh() = default;
@@ -77,5 +83,6 @@ namespace Geometry
 
         RT::Trace hit(const Ray& ray) const override;
     };
+
     std::shared_ptr<Mesh> transformMesh(const Mesh& original, const Matrix& transform);
 }

@@ -13,8 +13,8 @@ struct Matrix {
         float z = data[2][0] * p.x + data[2][1] * p.y + data[2][2] * p.z + data[2][3];
         float w = data[3][0] * p.x + data[3][1] * p.y + data[3][2] * p.z + data[3][3];
 
-        // If w is not 1, normalize the result
-        if (w != 0.0f) {
+        // If w is not 0 or 1, normalize the result
+        if (w != 0.0f and w!= 1.0f) {
             x /= w;
             y /= w;
             z /= w;
@@ -22,7 +22,7 @@ struct Matrix {
         return Point(x, y, z);
     }
 
-    // Multiplies the matrix by a vector (homogeneous coordinates, w = 0)
+    // Multiplies the matrix by a vector (homogeneous coordinates, w = 0) -> vector ignore translation
     Vector applyToVector(const Vector& v) const {
         float x = data[0][0] * v.x + data[0][1] * v.y + data[0][2] * v.z;
         float y = data[1][0] * v.x + data[1][1] * v.y + data[1][2] * v.z;
