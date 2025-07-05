@@ -16,7 +16,7 @@ struct Ray
     ~Ray() = default;
     Ray& operator=(const Ray&) = default;
 
-    Point at(const float& t) const
+    Point at(const double& t) const
     {
         return origin + t * direction;
     }

@@ -24,7 +24,7 @@ int main() {
     Point camera_position { 3.0f, 3.0f, 5.0f };
     Point look_at { 0.0f, 0.0f, 0.0f };
     Vector up_vector { 0.0f, 1.0f, 0.0f };
-    float vertical_fov = 90.0f * M_PI / 180.0f; // radians
+    double vertical_fov = 90.0f * M_PI / 180.0f; // radians
     uint32_t image_height = 500;
     uint32_t image_width = 500;
 

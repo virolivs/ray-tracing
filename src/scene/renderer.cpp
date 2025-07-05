@@ -6,7 +6,7 @@
 std::vector<std::shared_ptr<Hittable>> scene;
 
 Vector color(const Ray& ray) {
-    float closest_t = std::numeric_limits<float>::max();
+    double closest_t = std::numeric_limits<double>::max();
     Vector final_color;
     bool any_hit = false;
 
@@ -21,7 +21,7 @@ Vector color(const Ray& ray) {
 
     if (!any_hit) {
         Vector unit_direction = ray.direction.normalized();
-        float t = 0.5f * (unit_direction.y + 1.0f);
+        double t = 0.5f * (unit_direction.y + 1.0f);
         return Vector(1.0f, 1.0f, 1.0f) * (1.0f - t) + Vector(0.5f, 0.7f, 1.0f) * t;
     }
 
@@ -45,9 +45,9 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
         {
             Vector pixel_color = color(camera.cast_ray(i, j));
 
-            int red   = static_cast<int>(255.99f * clamp(pixel_color.x, 0.0f, 1.0f));
-            int green = static_cast<int>(255.99f * clamp(pixel_color.y, 0.0f, 1.0f));
-            int blue  = static_cast<int>(255.99f * clamp(pixel_color.z, 0.0f, 1.0f));
+            int red   = static_cast<int>(255.99 * clamp(pixel_color.x, 0.0, 1.0));
+            int green = static_cast<int>(255.99 * clamp(pixel_color.y, 0.0, 1.0));
+            int blue  = static_cast<int>(255.99 * clamp(pixel_color.z, 0.0, 1.0));
 
             image << red << " " << green << " " << blue << "\n";
         }

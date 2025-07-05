@@ -13,21 +13,21 @@ namespace Geometry
 
         Vector o = ray.origin - center;
         Vector d = ray.direction;
-        float r = radius;
+        double r = radius;
 
-        float a = dot(d, d);
-        float b = 2.0f * dot(o, d);
-        float c = dot(o, o) - r * r;
-        float discriminant = b * b - 4.0f * a * c;
+        double a = dot(d, d);
+        double b = 2.0f * dot(o, d);
+        double c = dot(o, o) - r * r;
+        double discriminant = b * b - 4.0f * a * c;
 
         if (discriminant < 0.0f)
         {
             return RT::Trace { hit, 0.0f, origin, position, normal, this->color };
         }
 
-        float t {};
-        float t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
-        float t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
+        double t {};
+        double t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
+        double t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
 
         if (t1 > 0.0f)
         {
@@ -62,14 +62,14 @@ namespace Geometry
         Point p = this->point;
         Vector n = this->normal;
 
-        constexpr float epsilon = 1e-6f;
+        constexpr double epsilon = 1e-6f;
 
         if (std::abs(dot(n, d)) < epsilon)
         {
             return RT::Trace { hit, 0.0f, origin, position, normal, this->color };
         }
 
-        float t = dot(n, p - o) / dot(n, d);
+        double t = dot(n, p - o) / dot(n, d);
 
         if (t < 0.0f)
         {
@@ -86,12 +86,14 @@ namespace Geometry
     RT::Trace Triangle::hit(const Ray& ray) const
     {
         Vector normal = cross(v1 - v0, v2 - v0).normalized();
-        float denom = dot(normal, ray.direction);
+        double denom = dot(normal, ray.direction);
 
-        if (std::abs(denom) == 0)
+        double epsilon = 1e-6;
+
+        if (std::abs(denom) <= epsilon)
             return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this->color);
 
-        float t = dot(normal, v0 - ray.origin) / denom;
+        double t = dot(normal, v0 - ray.origin) / denom;
 
         if (t < 0)
             return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this->color);
@@ -101,18 +103,18 @@ namespace Geometry
         Vector v = v2 - v0;
         Vector w = p - v0;
 
-        float uu = dot(u, u);
-        float uv = dot(u, v);
-        float vv = dot(v, v);
-        float wu = dot(w, u);
-        float wv = dot(w, v);
+        double uu = dot(u, u);
+        double uv = dot(u, v);
+        double vv = dot(v, v);
+        double wu = dot(w, u);
+        double wv = dot(w, v);
 
-        float D = uu * vv - uv * uv;
+        double D = uu * vv - uv * uv;
 
         if (D != 0)
         {
-            float alfa = (vv * wu - uv * wv) / D;
-            float gamma = (uu * wv - uv * wu) / D;
+            double alfa = (vv * wu - uv * wv) / D;
+            double gamma = (uu * wv - uv * wu) / D;
 
             if (alfa >= 0 && gamma >= 0 && (alfa + gamma) <= 1)
             {
@@ -134,7 +136,7 @@ namespace Geometry
     RT::Trace Mesh::hit(const Ray& ray) const
     {
         bool hit_any = false;
-        float closest_t = std::numeric_limits<float>::max();
+        double closest_t = std::numeric_limits<double>::max();
         Point hit_position {};
         Vector hit_normal {};
         Vector hit_color {};
@@ -201,7 +203,7 @@ namespace Geometry
 
         for (size_t i = 0; i < vertex_normals.size(); ++i) {
             if (counts[i] > 0) {
-                vertex_normals[i] = (vertex_normals[i] / float(counts[i])).normalized();
+                vertex_normals[i] = (vertex_normals[i] / double(counts[i])).normalized();
             }
         }
     }

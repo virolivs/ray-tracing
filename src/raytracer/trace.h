@@ -8,13 +8,13 @@ namespace RT
     struct Trace
     {
         bool hit {};
-        float t {};
+        double t {};
         Point origin {};
         Point position {};
         Vector normal {};
         Vector color {};
 
-        explicit Trace(bool hit, float t, const Point& origin, const Point& position, const Vector& normal, const Vector& color)
+        explicit Trace(bool hit, double t, const Point& origin, const Point& position, const Vector& normal, const Vector& color)
                : hit(hit), t(t), origin(origin), position(position), normal(normal), color(color) {}
 
 

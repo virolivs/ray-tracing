@@ -10,28 +10,28 @@ struct Vector
     {
         struct
         {
-            float x;
-            float y;
-            float z;
+            double x;
+            double y;
+            double z;
         };
-        float v[3] {};
+        double v[3] {};
     };
 
     Vector() : x { 0.0f }, y { 0.0f }, z { 0.0f } {}
-    explicit Vector(float x, float y, float z) : x { x }, y { y }, z { z } {}
-    explicit Vector(float s) : x { s }, y { s }, z { s } {}
+    explicit Vector(double x, double y, double z) : x { x }, y { y }, z { z } {}
+    explicit Vector(double s) : x { s }, y { s }, z { s } {}
 
     Vector(const Vector&) = default;
     ~Vector() = default;
     Vector& operator=(const Vector&) = default;
 
-    float& operator[](const size_t& idx)
+    double& operator[](const size_t& idx)
     {
         assert(idx <= 2);
         return v[idx];
     }
 
-    float operator[](const size_t& idx) const
+    double operator[](const size_t& idx) const
     {
         assert(idx <= 2);
         return v[idx];
@@ -91,28 +91,28 @@ struct Vector
         return *this;
     }
 
-    Vector operator+(const float& s) const
+    Vector operator+(const double& s) const
     {
         return Vector { x + s, y + s, z + s };
     }
 
-    Vector operator-(const float& s) const
+    Vector operator-(const double& s) const
     {
         return Vector { x - s, y - s, z - s };
     }
 
-    Vector operator*(const float& s) const
+    Vector operator*(const double& s) const
     {
         return Vector { x * s, y * s, z * s };
     }
 
-    Vector operator/(const float& s) const
+    Vector operator/(const double& s) const
     {
         assert(s != 0);
         return Vector { x / s, y / s, z / s };
     }
 
-    Vector& operator+=(const float& s)
+    Vector& operator+=(const double& s)
     {
         x += s;
         y += s;
@@ -120,7 +120,7 @@ struct Vector
         return *this;
     }
 
-    Vector& operator-=(const float& s)
+    Vector& operator-=(const double& s)
     {
         x -= s;
         y -= s;
@@ -128,7 +128,7 @@ struct Vector
         return *this;
     }
 
-    Vector& operator*=(const float& s)
+    Vector& operator*=(const double& s)
     {
         x *= s;
         y *= s;
@@ -136,7 +136,7 @@ struct Vector
         return *this;
     }
 
-    Vector& operator/=(const float& s)
+    Vector& operator/=(const double& s)
     {
         assert(s != 0);
         x /= s;
@@ -165,26 +165,26 @@ struct Vector
         return Vector { -x, -y, -z };
     }
 
-    float norm_sqr() const
+    double norm_sqr() const
     {
         return x * x + y * y + z * z;
     }
 
-    float norm() const
+    double norm() const
     {
         return std::sqrt(norm_sqr());
     }
 
     Vector normalized() const
     {
-        float n = norm();
+        double n = norm();
         assert(n > 0);
         return Vector { x / n, y / n, z / n };
     }
 
     Vector& normalize()
     {
-        float n = norm();
+        double n = norm();
         assert(n > 0);
         x /= n;
         y /= n;
@@ -193,28 +193,28 @@ struct Vector
     }
 };
 
-inline Vector operator+(const float& s, const Vector& v)
+inline Vector operator+(const double& s, const Vector& v)
 {
     return Vector { s + v.x, s + v.y, s + v.z };
 }
 
-inline Vector operator-(const float& s, const Vector& v)
+inline Vector operator-(const double& s, const Vector& v)
 {
     return Vector { s - v.x, s - v.y, s - v.z };
 }
 
-inline Vector operator*(const float& s, const Vector& v)
+inline Vector operator*(const double& s, const Vector& v)
 {
     return Vector { s * v.x, s * v.y, s * v.z };
 }
 
-inline Vector operator/(const float& s, const Vector& v)
+inline Vector operator/(const double& s, const Vector& v)
 {
     assert(v.x != 0 && v.y != 0 && v.z != 0);
     return Vector { s / v.x, s / v.y, s / v.z };
 }
 
-inline float dot(const Vector& u, const Vector& v)
+inline double dot(const Vector& u, const Vector& v)
 {
     return u.x * v.x + u.y * v.y + u.z * v.z;
 }

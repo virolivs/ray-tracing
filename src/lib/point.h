@@ -11,28 +11,28 @@ struct Point
     {
         struct
         {
-            float x;
-            float y;
-            float z;
+            double x;
+            double y;
+            double z;
         };
-        float p[3] {};
+        double p[3] {};
     };
 
     Point() : x { 0.0f }, y { 0.0f }, z { 0.0f } {}
-    explicit Point(float x, float y, float z) : x { x }, y { y }, z { z } {}
-    explicit Point(float s) : x { s }, y { s }, z { s } {}
+    explicit Point(double x, double y, double z) : x { x }, y { y }, z { z } {}
+    explicit Point(double s) : x { s }, y { s }, z { s } {}
 
     Point(const Point&) = default;
     ~Point() = default;
     Point& operator=(const Point&) = default;
 
-    float& operator[](const size_t& idx)
+    double& operator[](const size_t& idx)
     {
         assert(idx <= 2);
         return p[idx];
     }
 
-    float operator[](const size_t& idx) const
+    double operator[](const size_t& idx) const
     {
         assert(idx <= 2);
         return p[idx];
@@ -69,28 +69,28 @@ struct Point
         return Vector { x - q.x, y - q.y, z - q.z };
     }
 
-    Point operator+(const float& s) const
+    Point operator+(const double& s) const
     {
         return Point { x + s, y + s, z + s };
     }
 
-    Point operator-(const float& s) const
+    Point operator-(const double& s) const
     {
         return Point { x - s, y - s, z - s };
     }
 
-    Point operator*(const float& s) const
+    Point operator*(const double& s) const
     {
         return Point { x * s, y * s, z * s };
     }
 
-    Point operator/(const float& s) const
+    Point operator/(const double& s) const
     {
         assert(s != 0);
         return Point { x / s, y / s, z / s };
     }
 
-    Point& operator+=(const float& s)
+    Point& operator+=(const double& s)
     {
         x += s;
         y += s;
@@ -98,7 +98,7 @@ struct Point
         return *this;
     }
 
-    Point& operator-=(const float& s)
+    Point& operator-=(const double& s)
     {
         x -= s;
         y -= s;
@@ -106,7 +106,7 @@ struct Point
         return *this;
     }
 
-    Point& operator*=(const float& s)
+    Point& operator*=(const double& s)
     {
         x *= s;
         y *= s;
@@ -114,7 +114,7 @@ struct Point
         return *this;
     }
 
-    Point& operator/=(const float& s)
+    Point& operator/=(const double& s)
     {
         assert(s != 0);
         x /= s;
@@ -154,22 +154,22 @@ inline Point operator-(const Vector& v, const Point& p)
     return Point { v.x - p.x, v.y - p.y, v.z - p.z };
 }
 
-inline Point operator+(const float& s, const Point& p)
+inline Point operator+(const double& s, const Point& p)
 {
     return Point { s + p.x, s + p.y, s + p.z };
 }
 
-inline Point operator-(const float& s, const Point& p)
+inline Point operator-(const double& s, const Point& p)
 {
     return Point { s - p.x, s - p.y, s - p.z };
 }
 
-inline Point operator*(const float& s, const Point& p)
+inline Point operator*(const double& s, const Point& p)
 {
     return Point { s * p.x, s * p.y, s * p.z };
 }
 
-inline Point operator/(const float& s, const Point& p)
+inline Point operator/(const double& s, const Point& p)
 {
     assert(p.x != 0 && p.y != 0 && p.z != 0);
     return Point { s / p.x, s / p.y, s / p.z };

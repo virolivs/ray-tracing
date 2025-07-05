@@ -12,7 +12,7 @@ Matrix identityMatrix() {
 }
 
 // Returns a translation matrix for displacement (dx, dy, dz)
-Matrix translationMatrix(float dx, float dy, float dz) {
+Matrix translationMatrix(double dx, double dy, double dz) {
     Matrix m = identityMatrix();
     m.data[0][3] = dx;
     m.data[1][3] = dy;
@@ -21,7 +21,7 @@ Matrix translationMatrix(float dx, float dy, float dz) {
 }
 
 // Returns a scaling matrix with scale factors (sx, sy, sz)
-Matrix scaleMatrix(float sx, float sy, float sz) {
+Matrix scaleMatrix(double sx, double sy, double sz) {
     Matrix m = {};
     m.data[0][0] = sx;
     m.data[1][1] = sy;
@@ -31,10 +31,10 @@ Matrix scaleMatrix(float sx, float sy, float sz) {
 }
 
 // Returns a general rotation matrix around axis 'x', 'y' ou 'z'
-Matrix rotationMatrix(char axis, float angle) {
+Matrix rotationMatrix(char axis, double angle) {
     Matrix m = identityMatrix();
-    float c = std::cos(angle);
-    float s = std::sin(angle);
+    double c = std::cos(angle);
+    double s = std::sin(angle);
 
     switch (axis) {
         case 'x':
@@ -78,7 +78,7 @@ Matrix reflectionMatrix(bool reflectX, bool reflectY, bool reflectZ) {
 }
 
 // Returns a shear matrix
-Matrix shearMatrix(float xy, float xz, float yx, float yz, float zx, float zy) {
+Matrix shearMatrix(double xy, double xz, double yx, double yz, double zx, double zy) {
     Matrix m = identityMatrix();
 
     m.data[0][1] = xy; // X em função de Y
@@ -98,7 +98,7 @@ Matrix operator*(const Matrix& a, const Matrix& b) {
     {
         for (int j = 0; j < 4; ++j)
         {
-            float sum = 0.0f;
+            double sum = 0.0f;
             for (int k = 0; k < 4; ++k)
             {
                 sum += a.data[i][k] * b.data[k][j];

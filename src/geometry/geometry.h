@@ -16,9 +16,9 @@ namespace Geometry
     {
     public:
         Point center {};
-        float radius {};
+        double radius {};
 
-        explicit Sphere(Point center, float radius, Vector color) : Hittable(color), center(center), radius(radius) {}
+        explicit Sphere(Point center, double radius, Vector color) : Hittable(color), center(center), radius(radius) {}
 
         Sphere() = default;
         Sphere(const Sphere&) = default;

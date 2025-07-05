@@ -14,11 +14,11 @@ private:
     Vector up {};
     Vector u, v, w {};
 
-    float vertical_fov {};
-    float aspect_ratio {};
+    double vertical_fov {};
+    double aspect_ratio {};
 
     // world dimensions
-    float sensor_height, sensor_width {};
+    double sensor_height, sensor_width {};
 
     // pixel dimensions
     uint32_t pixel_height, pixel_width {};
@@ -26,7 +26,7 @@ private:
     Point lower_left_pixel {};
 
 public:
-    explicit Camera(Point center, Point target, Vector up, float vertical_fov, uint32_t pixel_height, uint32_t pixel_width);
+    explicit Camera(Point center, Point target, Vector up, double vertical_fov, uint32_t pixel_height, uint32_t pixel_width);
 
     uint32_t get_pixel_width() const { return pixel_width; }
     uint32_t get_pixel_height() const { return pixel_height; }
