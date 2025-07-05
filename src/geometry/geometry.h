@@ -49,9 +49,9 @@ namespace Geometry
     public:
         Point v0, v1, v2;
 
-        explicit Triangle(Point a, Point b, Point c, Vector color) : Hittable(color), v0(a), v1(b), v2(c) {}
+        explicit Triangle(const Point& a, const Point& b, const Point& c, const Vector& color) : Hittable(color), v0(a), v1(b), v2(c) {}
 
-        Triangle(Point a, Point b, Point c) : Hittable(Vector(1,1,1)), v0(a), v1(b), v2(c) {}
+        Triangle(const Point& a, const Point& b, const Point& c) : Hittable(Vector(1,1,1)), v0(a), v1(b), v2(c) {}
 
         Triangle() = default;
         Triangle(const Triangle&) = default;
@@ -70,11 +70,10 @@ namespace Geometry
         std::vector<Vector> vertex_normals;
         std::vector<Vector> face_colors;
 
+        explicit Mesh(objReader& reader, const Vector& color);
         explicit Mesh(const std::vector<Point>& vertices,
                     const std::vector<std::array<int, 3>>& indices,
-                    Vector color);
-
-        explicit Mesh(objReader& reader, Vector color);
+                    const Vector& color);
 
         Mesh() = default;
         Mesh(const Mesh&) = default;

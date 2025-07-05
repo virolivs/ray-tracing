@@ -109,19 +109,22 @@ namespace Geometry
 
         float D = uu * vv - uv * uv;
 
-        float alfa = (vv * wu - uv * wv) / D;
-        float gamma = (uu * wv - uv * wu) / D;
-
-        if (alfa >= 0 && gamma >= 0 && (alfa + gamma) <= 1)
+        if (D != 0)
         {
-            return RT::Trace {
-                true,
-                t,
-                ray.origin,
-                p,
-                normal,
-                this->color
-            };
+            float alfa = (vv * wu - uv * wv) / D;
+            float gamma = (uu * wv - uv * wu) / D;
+
+            if (alfa >= 0 && gamma >= 0 && (alfa + gamma) <= 1)
+            {
+                return RT::Trace {
+                    true,
+                    t,
+                    ray.origin,
+                    p,
+                    normal,
+                    this->color
+                };
+            }
         }
 
         return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this->color);
@@ -166,7 +169,7 @@ namespace Geometry
     }
 
 
-    Mesh::Mesh(objReader& reader, Vector color) : Hittable(color)
+    Mesh::Mesh(objReader& reader, const Vector& color) : Hittable(color)
     {
         this->vertices = reader.getVertices();
         const auto& faces = reader.getFaces();
