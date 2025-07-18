@@ -175,6 +175,7 @@ namespace Geometry
     {
         this->vertices = reader.getVertices();
         const auto& faces = reader.getFaces();
+        const auto& normals = reader.getNormals();
 
         indices.reserve(faces.size());
         triangle_normals.reserve(faces.size());
@@ -183,24 +184,54 @@ namespace Geometry
         std::vector<int> counts(vertices.size(), 0);
 
         for (const auto& face : faces) {
-            std::array<int, 3> tri = { face.verticeIndice[0], face.verticeIndice[1], face.verticeIndice[2] };
-            indices.push_back(tri);
+            std::array<int, 3> v_idx = {
+                face.verticeIndice[0],
+                face.verticeIndice[1],
+                face.verticeIndice[2]
+            };
+            std::array<int, 3> n_idx = {
+                face.normalIndice[0],
+                face.normalIndice[1],
+                face.normalIndice[2]
+            };
 
-            const Point& a = vertices[tri[0]];
-            const Point& b = vertices[tri[1]];
-            const Point& c = vertices[tri[2]];
+            indices.push_back(v_idx);
 
-            Vector normal = cross(b - a, c - a).normalized();
-            triangle_normals.push_back(normal);
+            Vector face_normal;
+
+            bool valid_normals =
+                n_idx[0] >= 0 && n_idx[1] >= 0 && n_idx[2] >= 0 &&
+                n_idx[0] < normals.size() && n_idx[1] < normals.size() && n_idx[2] < normals.size();
+
+            if (valid_normals) {
+                if (n_idx[0] == n_idx[1] && n_idx[1] == n_idx[2]) {
+                    face_normal = normals[n_idx[0]];
+                } else {
+                    face_normal = (normals[n_idx[0]] + normals[n_idx[1]] + normals[n_idx[2]]) / 3.0;
+                }
+            } else {
+                const Point& a = vertices[v_idx[0]];
+                const Point& b = vertices[v_idx[1]];
+                const Point& c = vertices[v_idx[2]];
+                face_normal = cross(b - a, c - a);
+            }
+
+            triangle_normals.push_back(face_normal.normalized());
 
             face_colors.push_back(face.kd);
 
-            for (int idx : tri) {
-                vertex_normals[idx] += normal;
-                counts[idx]++;
+            // Acumula normal para cada vértice
+            if (valid_normals) {
+                for (int i = 0; i < 3; ++i) {
+                    int v = v_idx[i];
+                    int n = n_idx[i];
+                    vertex_normals[v] += normals[n];
+                    counts[v]++;
+                }
             }
         }
 
+        // Normaliza normais dos vértices
         for (size_t i = 0; i < vertex_normals.size(); ++i) {
             if (counts[i] > 0) {
                 vertex_normals[i] = (vertex_normals[i] / double(counts[i])).normalized();

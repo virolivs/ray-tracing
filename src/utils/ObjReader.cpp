@@ -195,6 +195,11 @@ public:
         return vertices;
     }
 
+    // Método para retornar a lista de normais
+    std::vector<Vector> getNormals() {
+        return normals;
+    }
+
 
     // Emite um output no terminal para cada face, com seus respectivos pontos (x, y, z)
     void print_faces() {

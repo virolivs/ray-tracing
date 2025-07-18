@@ -32,7 +32,7 @@ int main() {
     Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
 
     // Load the object
-    objReader obj("inputs/cubo.obj");
+    objReader obj("inputs/pyramid.obj");
 
     ////// OBJECT VISUALIZATION //////
 
