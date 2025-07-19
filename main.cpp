@@ -85,9 +85,8 @@ int main() {
     // Luzes da cena
     SceneLights lights;
     lights.ambient_color = Vector(0.1f, 0.1f, 0.1f); // luz ambiente fraca
-    lights.lights.push_back(Light(Point(10.0f, 10.0f, 10.0f), Vector(1.0f, 1.0f, 1.0f))); // luz branca
+    lights.lights.push_back(Light(Point(1.0f, 2.0f, 3.0f), Vector(1.0f, 1.0f, 1.0f)));
 
-    lights.lights.push_back(Light(Point(4.0f, 4.0f, 6.0f), Vector(1.0f, 1.0f, 1.0f)));
 
     ////// OBJECT VISUALIZATION //////
 
