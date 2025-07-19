@@ -226,6 +226,11 @@ inline Vector cross(const Vector& u, const Vector& v)
                     u.x * v.y - u.y * v.x };
 }
 
+inline Vector reflect(const Vector& I, const Vector& N) 
+{
+    return I - 2.0 * dot(I, N) * N;
+}
+
 inline std::ostream& operator<<(std::ostream& os, const Vector& v)
 {
     os << "Vector(" << v.x << ", " << v.y << ", " << v.z << ")";
