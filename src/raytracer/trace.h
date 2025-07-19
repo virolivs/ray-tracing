@@ -12,16 +12,17 @@ namespace RT
         Point origin {};
         Point position {};
         Vector normal {};
-        Vector color {};
-
-        explicit Trace(bool hit, double t, const Point& origin, const Point& position, const Vector& normal, const Vector& color)
-               : hit(hit), t(t), origin(origin), position(position), normal(normal), color(color) {}
-
+        const Hittable* hittable {};  // ponteiro para o objeto atingido
 
         Trace() = default;
+
+        Trace(bool hit, double t, const Point& origin, const Point& position,
+              const Vector& normal, const Hittable* hittable)
+            : hit(hit), t(t), origin(origin), position(position), normal(normal), hittable(hittable) {}
+
         Trace(const Trace&) = default;
-        ~Trace() = default;
         Trace& operator=(const Trace&) = default;
+        ~Trace() = default;
     };
 }
 
@@ -30,7 +31,6 @@ inline std::ostream& operator<<(std::ostream& os, const RT::Trace& t)
     os << "Trace(" << std::boolalpha << t.hit << ", "
        << t.origin << ", "
        << t.position << ", "
-       << t.normal << ", "
-       << t.color << ")";
+       << t.normal << ")";
     return os;
 }

@@ -2,15 +2,18 @@
 
 #include "../lib/ray.h"
 #include "../raytracer/trace.h"
-#include "../lib/vector.h" 
+#include "../lib/vector.h"
+#include "material.h"
 
 class Hittable {
 public:
-    Vector color;
+    Material material;
 
-    Hittable() : color(1.0f, 1.0f, 1.0f) {}
-    Hittable(const Vector& color) : color(color) {}
-    ~Hittable() = default;
+    Hittable() : material() {}
+
+    Hittable(const Material& material) : material(material) {}
+
+    virtual ~Hittable() = default;
 
     virtual RT::Trace hit(const Ray& ray) const = 0;
 };

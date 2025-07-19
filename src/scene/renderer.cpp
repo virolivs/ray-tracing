@@ -5,16 +5,16 @@
 
 std::vector<std::shared_ptr<Hittable>> scene;
 
-Vector color(const Ray& ray) {
+Vector color(const Ray& ray, const SceneLights& lights) {
     double closest_t = std::numeric_limits<double>::max();
-    Vector final_color;
+    RT::Trace closest_hit;
     bool any_hit = false;
 
     for (const auto& object : scene) {
-        auto hit_result = object->hit(ray);
+        RT::Trace hit_result = object->hit(ray);
         if (hit_result.hit && hit_result.t < closest_t) {
             closest_t = hit_result.t;
-            final_color = hit_result.color;
+            closest_hit = hit_result;
             any_hit = true;
         }
     }
@@ -25,14 +25,18 @@ Vector color(const Ray& ray) {
         return Vector(1.0f, 1.0f, 1.0f) * (1.0f - t) + Vector(0.5f, 0.7f, 1.0f) * t;
     }
 
-    return final_color;
+    return phongIllumination(closest_hit, lights, scene);
 }
 
-void render_scene(const Camera& camera, const std::string& filename, uint32_t image_width, uint32_t image_height)
+
+void render_scene(const Camera& camera,
+                  const std::string& filename,
+                  uint32_t image_width,
+                  uint32_t image_height,
+                  const SceneLights& lights)
 {
     std::ofstream image(filename);
-    if (!image)
-    {
+    if (!image) {
         std::cerr << "Error creating " << filename << "\n";
         return;
     }
@@ -43,8 +47,9 @@ void render_scene(const Camera& camera, const std::string& filename, uint32_t im
     {
         for (int i = 0; i < image_width; ++i)
         {
-            Vector pixel_color = color(camera.cast_ray(i, j));
-
+            Ray ray = camera.cast_ray(i, j);
+            Vector pixel_color = color(ray, lights);
+            
             int red   = static_cast<int>(255.99 * clamp(pixel_color.x, 0.0, 1.0));
             int green = static_cast<int>(255.99 * clamp(pixel_color.y, 0.0, 1.0));
             int blue  = static_cast<int>(255.99 * clamp(pixel_color.z, 0.0, 1.0));

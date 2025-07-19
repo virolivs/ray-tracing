@@ -6,9 +6,10 @@
 #include "../lib/ray.h"
 #include "../lib/vector.h"
 #include "../raytracer/trace.h"
-#include "../utils/ObjReader.cpp" 
+#include "../utils/ObjReader.cpp"
 #include "hittable.h"
 #include "../matrix/matrix.h"
+#include "material.h" // novo include
 
 namespace Geometry
 {
@@ -18,7 +19,8 @@ namespace Geometry
         Point center {};
         double radius {};
 
-        explicit Sphere(Point center, double radius, Vector color) : Hittable(color), center(center), radius(radius) {}
+        explicit Sphere(Point center, double radius, Material material)
+            : Hittable(material), center(center), radius(radius) {}
 
         Sphere() = default;
         Sphere(const Sphere&) = default;
@@ -34,7 +36,8 @@ namespace Geometry
         Point point {};
         Vector normal {};
 
-        explicit Plane(Point point, Vector normal, Vector color) : Hittable(color), point(point), normal(normal) {}
+        explicit Plane(Point point, Vector normal, Material material)
+            : Hittable(material), point(point), normal(normal) {}
 
         Plane() = default;
         Plane(const Plane&) = default;
@@ -49,9 +52,8 @@ namespace Geometry
     public:
         Point v0, v1, v2;
 
-        explicit Triangle(const Point& a, const Point& b, const Point& c, const Vector& color) : Hittable(color), v0(a), v1(b), v2(c) {}
-
-        Triangle(const Point& a, const Point& b, const Point& c) : Hittable(Vector(1,1,1)), v0(a), v1(b), v2(c) {}
+        explicit Triangle(const Point& a, const Point& b, const Point& c, const Material& material)
+            : Hittable(material), v0(a), v1(b), v2(c) {}
 
         Triangle() = default;
         Triangle(const Triangle&) = default;
@@ -60,7 +62,7 @@ namespace Geometry
 
         RT::Trace hit(const Ray& ray) const override;
     };
-    
+
     class Mesh : public Hittable
     {
     public:
@@ -68,12 +70,11 @@ namespace Geometry
         std::vector<std::array<int, 3>> indices;
         std::vector<Vector> triangle_normals;
         std::vector<Vector> vertex_normals;
-        std::vector<Vector> face_colors;
 
-        explicit Mesh(objReader& reader, const Vector& color);
+        explicit Mesh(objReader& reader, const Material& material);
         explicit Mesh(const std::vector<Point>& vertices,
-                    const std::vector<std::array<int, 3>>& indices,
-                    const Vector& color);
+                      const std::vector<std::array<int, 3>>& indices,
+                      const Material& material);
 
         Mesh() = default;
         Mesh(const Mesh&) = default;

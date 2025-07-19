@@ -22,7 +22,7 @@ namespace Geometry
 
         if (discriminant < 0.0f)
         {
-            return RT::Trace { hit, 0.0f, origin, position, normal, this->color };
+            return RT::Trace { hit, 0.0f, origin, position, normal, this };
         }
 
         double t {};
@@ -39,14 +39,14 @@ namespace Geometry
         }
         else
         {
-            return RT::Trace { hit, 0.0f, origin, position, normal, this->color };
+            return RT::Trace { hit, 0.0f, origin, position, normal, this };
         }
 
         hit = true;
         position = ray.at(t);
         normal = (position - center).normalized();
 
-        return RT::Trace { hit, t, origin, position, normal, this->color };
+        return RT::Trace { hit, t, origin, position, normal, this };
 
     }
 
@@ -66,21 +66,21 @@ namespace Geometry
 
         if (std::abs(dot(n, d)) < epsilon)
         {
-            return RT::Trace { hit, 0.0f, origin, position, normal, this->color };
+            return RT::Trace { hit, 0.0f, origin, position, normal, this };
         }
 
         double t = dot(n, p - o) / dot(n, d);
 
         if (t < 0.0f)
         {
-            return RT::Trace { hit, 0.0f, origin, position, normal, this->color };
+            return RT::Trace { hit, 0.0f, origin, position, normal, this };
         }
 
         hit = true;
         position = ray.at(t);
         normal = n.normalized();
 
-        return RT::Trace { hit, t, origin, position, normal, this->color };
+        return RT::Trace { hit, t, origin, position, normal, this };
     }
 
     RT::Trace Triangle::hit(const Ray& ray) const
@@ -91,12 +91,12 @@ namespace Geometry
         double epsilon = 1e-6;
 
         if (std::abs(denom) <= epsilon)
-            return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this->color);
+            return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this);
 
         double t = dot(normal, v0 - ray.origin) / denom;
 
         if (t < 0)
-            return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this->color);
+            return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this);
 
         Point p = ray.at(t);
         Vector u = v1 - v0;
@@ -124,12 +124,12 @@ namespace Geometry
                     ray.origin,
                     p,
                     normal,
-                    this->color
+                    this
                 };
             }
         }
 
-        return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this->color);
+        return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this);
     }
 
 
@@ -139,7 +139,7 @@ namespace Geometry
         double closest_t = std::numeric_limits<double>::max();
         Point hit_position {};
         Vector hit_normal {};
-        Vector hit_color {};
+        size_t hit_index = 0;
 
         for (size_t i = 0; i < indices.size(); ++i)
         {
@@ -147,9 +147,8 @@ namespace Geometry
             const Point& a = vertices[tri[0]];
             const Point& b = vertices[tri[1]];
             const Point& c = vertices[tri[2]];
-            const Vector& color = face_colors[i];
 
-            Triangle temp(a, b, c, color);
+            Triangle temp(a, b, c, this->material);
             RT::Trace result = temp.hit(ray);
 
             if (result.hit && result.t < closest_t)
@@ -158,20 +157,20 @@ namespace Geometry
                 closest_t = result.t;
                 hit_position = result.position;
                 hit_normal = result.normal;
-                hit_color = result.color;
+                hit_index = i;
             }
         }
 
         if (hit_any)
         {
-            return RT::Trace{ true, closest_t, ray.origin, hit_position, hit_normal, hit_color };
+            return RT::Trace{ true, closest_t, ray.origin, hit_position, hit_normal, this };
         }
 
-        return RT::Trace{ false, 0, ray.origin, {}, {}, Vector{0, 0, 0} };
+        return RT::Trace{ false, 0, ray.origin, {}, {}, this };
     }
 
 
-    Mesh::Mesh(objReader& reader, const Vector& color) : Hittable(color)
+    Mesh::Mesh(objReader& reader, const Material& material) : Hittable(material)
     {
         this->vertices = reader.getVertices();
         const auto& faces = reader.getFaces();
@@ -218,7 +217,7 @@ namespace Geometry
 
             triangle_normals.push_back(face_normal.normalized());
 
-            face_colors.push_back(face.kd);
+            //face_colors.push_back(face.kd); //gpt mandou comentar
 
             // Acumula normal para cada vértice
             if (valid_normals) {

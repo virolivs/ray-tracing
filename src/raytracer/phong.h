@@ -4,6 +4,7 @@
 #include "../raytracer/trace.h"
 #include "../scene/light.h"
 #include "../geometry/hittable.h"
+#include "../geometry/material.h"
 
 Vector phongIllumination(
     const RT::Trace& trace,

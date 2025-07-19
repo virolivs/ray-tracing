@@ -18,6 +18,9 @@
 #include "src/matrix/matrix.h"
 #include "src/matrix/matrixTransforms.h"
 
+// Parte do phong
+#include "src/scene/light.h"
+
 
 int main() {
     // Image and camera params
@@ -34,47 +37,52 @@ int main() {
     // Load the object
     objReader obj("inputs/pyramid.obj");
 
+    // Luzes da cena
+    SceneLights lights;
+    lights.ambient_color = Vector(0.1f, 0.1f, 0.1f); // luz ambiente fraca
+    lights.lights.push_back(Light(Point(10.0f, 10.0f, 10.0f), Vector(1.0f, 1.0f, 1.0f))); // luz branca
+
     ////// OBJECT VISUALIZATION //////
 
     // TEST 0: Object visualization
     auto original_mesh = std::make_shared<Geometry::Mesh>(obj, obj.getKd());
     scene.push_back(original_mesh);
-    render_scene(camera, "outputs/original.ppm", image_width, image_height);
+    render_scene(camera, "outputs/original.ppm", image_width, image_height, lights);
     scene.clear();
 
     // TEST 1: Translation
     Matrix translation = translationMatrix(0.0f, 0.0f, 2.0f);
     auto transladed_mesh = Geometry::transformMesh(*original_mesh, translation);
     scene.push_back(transladed_mesh);
-    render_scene(camera, "outputs/transladed.ppm", image_width, image_height);
+    render_scene(camera, "outputs/transladed.ppm", image_width, image_height, lights);
     scene.clear();
 
     // TEST 2: Rotation
     Matrix rotation_y = rotationMatrix('Y', M_PI / 4);
     auto rotated_mesh = Geometry::transformMesh(*original_mesh, rotation_y);
     scene.push_back(rotated_mesh);
-    render_scene(camera, "outputs/rotated.ppm", image_width, image_height);
+    render_scene(camera, "outputs/rotated.ppm", image_width, image_height, lights);
     scene.clear();
 
     // TEST 3: Scale
     Matrix scale = scaleMatrix(1.0f, 2.0f, 0.5f);  
     auto scaled_mesh = Geometry::transformMesh(*original_mesh, scale);
     scene.push_back(scaled_mesh);
-    render_scene(camera, "outputs/scaled.ppm", image_width, image_height);
+    render_scene(camera, "outputs/scaled.ppm", image_width, image_height, lights);
     scene.clear();
 
     // TEST 4: Shear matrix
     Matrix shear = shearMatrix(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     auto sheared_mesh = Geometry::transformMesh(*original_mesh, shear);
     scene.push_back(sheared_mesh);
-    render_scene(camera, "outputs/sheared.ppm", image_width, image_height);
+    render_scene(camera, "outputs/sheared.ppm", image_width, image_height, lights);
     scene.clear();
 
     // TEST 5: Reflection across the XY plane (inverte Z)
     Matrix reflection = reflectionMatrix(false, false, true);
     auto reflected_mesh = Geometry::transformMesh(*original_mesh, reflection);
     scene.push_back(reflected_mesh);
-    render_scene(camera, "outputs/reflected.ppm", image_width, image_height);
+    render_scene(camera, "outputs/reflected.ppm", image_width, image_height, lights);
     scene.clear();
 
     // TEST 6: Combined matrix
@@ -84,7 +92,7 @@ int main() {
 
     auto combined_mesh = Geometry::transformMesh(*original_mesh, combined);
     scene.push_back(combined_mesh);
-    render_scene(camera, "outputs/combined.ppm", image_width, image_height);
+    render_scene(camera, "outputs/combined.ppm", image_width, image_height, lights);
     scene.clear();
 
     return 0;
