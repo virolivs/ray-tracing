@@ -2,174 +2,137 @@
 #include "geometry.h"
 #include <memory>
 
-namespace Geometry
-{
-    RT::Trace Sphere::hit(const Ray& ray) const
+    namespace Geometry
     {
-        bool hit { false };
-        Point origin { ray.origin };
-        Point position {};
-        Vector normal {};
-
-        Vector o = ray.origin - center;
-        Vector d = ray.direction;
-        double r = radius;
-
-        double a = dot(d, d);
-        double b = 2.0f * dot(o, d);
-        double c = dot(o, o) - r * r;
-        double discriminant = b * b - 4.0f * a * c;
-
-        if (discriminant < 0.0f)
+        RT::Trace Sphere::hit(const Ray& ray) const
         {
-            return RT::Trace { hit, 0.0f, origin, position, normal, this };
-        }
+            Vector o = ray.origin - center;
+            Vector d = ray.direction;
+            double r = radius;
 
-        double t {};
-        double t1 = (-b - std::sqrt(discriminant)) / (2.0f * a);
-        double t2 = (-b + std::sqrt(discriminant)) / (2.0f * a);
+            double a = dot(d, d);
+            double b = 2.0 * dot(o, d);
+            double c = dot(o, o) - r * r;
+            double discriminant = b * b - 4.0 * a * c;
 
-        if (t1 > 0.0f)
-        {
-            t = t1;
-        }
-        else if (t2 > 0.0f)
-        {
-            t = t2;
-        }
-        else
-        {
-            return RT::Trace { hit, 0.0f, origin, position, normal, this };
-        }
-
-        hit = true;
-        position = ray.at(t);
-        normal = (position - center).normalized();
-
-        return RT::Trace { hit, t, origin, position, normal, this };
-
-    }
-
-    RT::Trace Plane::hit(const Ray& ray) const
-    {
-        bool hit { false };
-        Point origin { ray.origin };
-        Point position {};
-        Vector normal {};
-
-        Point o = ray.origin;
-        Vector d = ray.direction;
-        Point p = this->point;
-        Vector n = this->normal;
-
-        constexpr double epsilon = 1e-6f;
-
-        if (std::abs(dot(n, d)) < epsilon)
-        {
-            return RT::Trace { hit, 0.0f, origin, position, normal, this };
-        }
-
-        double t = dot(n, p - o) / dot(n, d);
-
-        if (t < 0.0f)
-        {
-            return RT::Trace { hit, 0.0f, origin, position, normal, this };
-        }
-
-        hit = true;
-        position = ray.at(t);
-        normal = n.normalized();
-
-        return RT::Trace { hit, t, origin, position, normal, this };
-    }
-
-    RT::Trace Triangle::hit(const Ray& ray) const
-    {
-        Vector normal = cross(v1 - v0, v2 - v0).normalized();
-        double denom = dot(normal, ray.direction);
-
-        double epsilon = 1e-6;
-
-        if (std::abs(denom) <= epsilon)
-            return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this);
-
-        double t = dot(normal, v0 - ray.origin) / denom;
-
-        if (t < 0)
-            return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this);
-
-        Point p = ray.at(t);
-        Vector u = v1 - v0;
-        Vector v = v2 - v0;
-        Vector w = p - v0;
-
-        double uu = dot(u, u);
-        double uv = dot(u, v);
-        double vv = dot(v, v);
-        double wu = dot(w, u);
-        double wv = dot(w, v);
-
-        double D = uu * vv - uv * uv;
-
-        if (D != 0)
-        {
-            double alfa = (vv * wu - uv * wv) / D;
-            double gamma = (uu * wv - uv * wu) / D;
-
-            if (alfa >= 0 && gamma >= 0 && (alfa + gamma) <= 1)
+            if (discriminant < 0.0)
             {
-                return RT::Trace {
-                    true,
-                    t,
-                    ray.origin,
-                    p,
-                    normal,
-                    this
-                };
+                return RT::Trace{ false, 0.0, ray.origin, {}, {}, this, -1 };
             }
-        }
 
-        return RT::Trace(false, 0, ray.origin, Point{}, Vector{}, this);
-    }
+            double sqrt_disc = std::sqrt(discriminant);
+            double t1 = (-b - sqrt_disc) / (2.0 * a);
+            double t2 = (-b + sqrt_disc) / (2.0 * a);
 
+            double t = (t1 > 0.0) ? t1 : ((t2 > 0.0) ? t2 : -1.0);
 
-    RT::Trace Mesh::hit(const Ray& ray) const
-    {
-        bool hit_any = false;
-        double closest_t = std::numeric_limits<double>::max();
-        Point hit_position {};
-        Vector hit_normal {};
-        int hit_index = -1;  // usar int para combinar com Trace.face_index
-
-        for (size_t i = 0; i < indices.size(); ++i)
-        {
-            const auto& tri = indices[i];
-            const Point& a = vertices[tri[0]];
-            const Point& b = vertices[tri[1]];
-            const Point& c = vertices[tri[2]];
-
-            // Use o material correto da face i
-            Triangle temp(a, b, c, materials[i]);
-            RT::Trace result = temp.hit(ray);
-
-            if (result.hit && result.t < closest_t)
+            if (t < 0.0)
             {
-                hit_any = true;
-                closest_t = result.t;
-                hit_position = result.position;
-                hit_normal = result.normal;
-                hit_index = static_cast<int>(i);
+                return RT::Trace{ false, 0.0, ray.origin, {}, {}, this, -1 };
             }
+
+            Point position = ray.at(t);
+            Vector normal = (position - center).normalized();
+
+            return RT::Trace{ true, t, ray.origin, position, normal, this, -1 };
         }
 
-        if (hit_any)
+        RT::Trace Plane::hit(const Ray& ray) const
         {
-            // Retorna com o índice da face atingida
-            return RT::Trace{ true, closest_t, ray.origin, hit_position, hit_normal, this, hit_index };
+            double denom = dot(normal, ray.direction);
+            constexpr double epsilon = 1e-6;
+
+            if (std::abs(denom) < epsilon)
+            {
+                return RT::Trace{ false, 0.0, ray.origin, {}, {}, this, -1 };
+            }
+
+            double t = dot(normal, point - ray.origin) / denom;
+
+            if (t < 0.0)
+            {
+                return RT::Trace{ false, 0.0, ray.origin, {}, {}, this, -1 };
+            }
+
+            Point position = ray.at(t);
+            return RT::Trace{ true, t, ray.origin, position, normal.normalized(), this, -1 };
         }
 
-        return RT::Trace{ false, 0, ray.origin, {}, {}, this, -1 };
-    }
+        RT::Trace Triangle::hit(const Ray& ray) const
+        {
+            Vector n = cross(v1 - v0, v2 - v0).normalized();
+            double denom = dot(n, ray.direction);
+
+            constexpr double epsilon = 1e-6;
+            if (std::abs(denom) <= epsilon)
+                return RT::Trace{ false, 0, ray.origin, {}, {}, this, -1 };
+
+            double t = dot(n, v0 - ray.origin) / denom;
+            if (t < 0)
+                return RT::Trace{ false, 0, ray.origin, {}, {}, this, -1 };
+
+            Point p = ray.at(t);
+
+            Vector u = v1 - v0;
+            Vector v = v2 - v0;
+            Vector w = p - v0;
+
+            double uu = dot(u, u);
+            double uv = dot(u, v);
+            double vv = dot(v, v);
+            double wu = dot(w, u);
+            double wv = dot(w, v);
+
+            double D = uu * vv - uv * uv;
+            if (D == 0.0)
+                return RT::Trace{ false, 0, ray.origin, {}, {}, this, -1 };
+
+            double s = (vv * wu - uv * wv) / D;
+            double t_bary = (uu * wv - uv * wu) / D;
+
+            if (s >= 0 && t_bary >= 0 && (s + t_bary) <= 1)
+            {
+                return RT::Trace{ true, t, ray.origin, p, n, this, -1 };
+            }
+
+            return RT::Trace{ false, 0, ray.origin, {}, {}, this, -1 };
+        }
+
+        RT::Trace Mesh::hit(const Ray& ray) const
+        {
+            bool hit_any = false;
+            double closest_t = std::numeric_limits<double>::max();
+            Point hit_position {};
+            Vector hit_normal {};
+            int hit_index = -1;
+
+            for (size_t i = 0; i < indices.size(); ++i)
+            {
+                const auto& tri = indices[i];
+                const Point& a = vertices[tri[0]];
+                const Point& b = vertices[tri[1]];
+                const Point& c = vertices[tri[2]];
+
+                Triangle temp(a, b, c, materials[i]);
+                RT::Trace result = temp.hit(ray);
+
+                if (result.hit && result.t < closest_t)
+                {
+                    hit_any = true;
+                    closest_t = result.t;
+                    hit_position = result.position;
+                    hit_normal = result.normal;
+                    hit_index = static_cast<int>(i);
+                }
+            }
+
+            if (hit_any)
+            {
+                return RT::Trace{ true, closest_t, ray.origin, hit_position, hit_normal.normalized(), this, hit_index };
+            }
+
+            return RT::Trace{ false, 0, ray.origin, {}, {}, this, -1 };
+        }
 
 
     Mesh::Mesh(objReader& reader) : Hittable()
@@ -228,12 +191,13 @@ namespace Geometry
 
             // Cria o material completo da face com os atributos carregados do .mtl
             Material mat(
-                face.kd,             // kd - componente difusa
-                face.ks,             // ks - componente especular
-                face.ka,             // ka - componente ambiente
-                Vector(0, 0, 0),     // kr - reflexão (pode adaptar para face.ke, se necessário)
-                Vector(0, 0, 0),     // kt - transmissão
-                face.ns              // eta - rugosidade ou brilho (do MTL)
+                face.ka,         // Ka
+                face.kd,         // Kd
+                face.ks,         // Ks
+                face.ke,         // Ke
+                face.ns,         // shininess
+                face.ni,         // ior
+                face.d           // opacity
             );
 
             // Armazena o material
@@ -257,8 +221,6 @@ namespace Geometry
             }
         }
     }
-
-
 
     std::shared_ptr<Mesh> transformMesh(const Mesh& original, const Matrix& transform) 
     {

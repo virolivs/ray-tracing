@@ -27,7 +27,7 @@ Vector phongIllumination(
 
         double diff = std::max(0.0, dot(normal, lightDir));      // componente difusa
         Vector reflectDir = reflect(-lightDir, normal);          // direção refletida
-        double spec = std::pow(std::max(0.0, dot(viewDir, reflectDir)), material.eta);  // componente especular
+        double spec = std::pow(std::max(0.0, dot(viewDir, reflectDir)), material.shininess);  // componente especular
 
         double distance = (light.position - point).norm();       // distância para atenuação
         double attenuation = 1.0 / (distance * distance);        // atenuação quadrática
