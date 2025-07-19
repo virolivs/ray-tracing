@@ -38,15 +38,61 @@ int main() {
     // Load the object
     objReader obj("inputs/pyramid.obj");
 
+    /*
+
+    auto faces = obj.getFaces();
+    auto vertices = obj.getVertices();
+    auto normals = obj.getNormals();
+
+    int faceIndex = 1;
+    for (const auto& face : faces) {
+        std::cout << "Face " << faceIndex++ << ":\n";
+
+        // Vértices
+        for (int i = 0; i < 3; ++i) {
+            int vIdx = face.verticeIndice[i];
+            const Point& p = vertices[vIdx];
+            std::cout << "  V[" << i << "] index: " << vIdx
+                    << " -> (" << p.x << ", " << p.y << ", " << p.z << ")\n";
+        }
+
+        // Normais
+        for (int i = 0; i < 3; ++i) {
+            int nIdx = face.normalIndice[i];
+            if (nIdx >= 0 && nIdx < normals.size()) {
+                const Vector& n = normals[nIdx];
+                std::cout << "  N[" << i << "] index: " << nIdx
+                        << " -> (" << n.x << ", " << n.y << ", " << n.z << ")\n";
+            } else {
+                std::cout << "  N[" << i << "] index: " << nIdx << " -> [inválido]\n";
+            }
+        }
+
+        // Propriedades do material
+        std::cout << "  ka (ambiente): (" << face.ka.x << ", " << face.ka.y << ", " << face.ka.z << ")\n";
+        std::cout << "  kd (difuso):   (" << face.kd.x << ", " << face.kd.y << ", " << face.kd.z << ")\n";
+        std::cout << "  ks (especular):(" << face.ks.x << ", " << face.ks.y << ", " << face.ks.z << ")\n";
+        std::cout << "  ke (emissivo): (" << face.ke.x << ", " << face.ke.y << ", " << face.ke.z << ")\n";
+        std::cout << "  ns (brilho):   " << face.ns << "\n";
+        std::cout << "  ni (refração): " << face.ni << "\n";
+        std::cout << "  d (opacidade): " << face.d << "\n";
+
+        std::cout << "---------------------------\n";
+    }
+
+    */
+
     // Luzes da cena
     SceneLights lights;
     lights.ambient_color = Vector(0.1f, 0.1f, 0.1f); // luz ambiente fraca
     lights.lights.push_back(Light(Point(10.0f, 10.0f, 10.0f), Vector(1.0f, 1.0f, 1.0f))); // luz branca
 
+    lights.lights.push_back(Light(Point(4.0f, 4.0f, 6.0f), Vector(1.0f, 1.0f, 1.0f)));
+
     ////// OBJECT VISUALIZATION //////
 
     // TEST 0: Object visualization
-    auto original_mesh = std::make_shared<Geometry::Mesh>(obj, obj.getKd());
+    auto original_mesh = std::make_shared<Geometry::Mesh>(obj);
     scene.push_back(original_mesh);
     render_scene(camera, "outputs/original.ppm", image_width, image_height, lights);
     scene.clear();

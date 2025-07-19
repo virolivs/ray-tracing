@@ -169,38 +169,28 @@ namespace Geometry
         return RT::Trace{ false, 0, ray.origin, {}, {}, this };
     }
 
-
-    Mesh::Mesh(objReader& reader, const Material& material) : Hittable(material)
-    {
+    Mesh::Mesh(objReader& reader) : Hittable() {
         this->vertices = reader.getVertices();
         const auto& faces = reader.getFaces();
         const auto& normals = reader.getNormals();
 
         indices.reserve(faces.size());
         triangle_normals.reserve(faces.size());
+        face_colors.reserve(faces.size());
+        materials.reserve(faces.size());
 
         vertex_normals.resize(vertices.size(), Vector(0, 0, 0));
         std::vector<int> counts(vertices.size(), 0);
 
         for (const auto& face : faces) {
-            std::array<int, 3> v_idx = {
-                face.verticeIndice[0],
-                face.verticeIndice[1],
-                face.verticeIndice[2]
-            };
-            std::array<int, 3> n_idx = {
-                face.normalIndice[0],
-                face.normalIndice[1],
-                face.normalIndice[2]
-            };
+            std::array<int, 3> v_idx = { face.verticeIndice[0], face.verticeIndice[1], face.verticeIndice[2] };
+            std::array<int, 3> n_idx = { face.normalIndice[0], face.normalIndice[1], face.normalIndice[2] };
 
             indices.push_back(v_idx);
 
             Vector face_normal;
-
-            bool valid_normals =
-                n_idx[0] >= 0 && n_idx[1] >= 0 && n_idx[2] >= 0 &&
-                n_idx[0] < normals.size() && n_idx[1] < normals.size() && n_idx[2] < normals.size();
+            bool valid_normals = n_idx[0] >= 0 && n_idx[1] >= 0 && n_idx[2] >= 0 &&
+                                n_idx[0] < normals.size() && n_idx[1] < normals.size() && n_idx[2] < normals.size();
 
             if (valid_normals) {
                 if (n_idx[0] == n_idx[1] && n_idx[1] == n_idx[2]) {
@@ -217,9 +207,21 @@ namespace Geometry
 
             triangle_normals.push_back(face_normal.normalized());
 
-            //face_colors.push_back(face.kd); //gpt mandou comentar
+            // Cor difusa para visualização rápida
+            face_colors.push_back(face.kd);
 
-            // Acumula normal para cada vértice
+            // Material completo (usando campos que já vêm no face)
+            Material mat(
+                face.kd,             // kd - difuso
+                face.ks,             // ks - especular
+                face.ka,             // ka - ambiente
+                Vector(0, 0, 0),     // kr - reflexão (se quiser usar face.ke ou outra coisa aqui, pode adaptar)
+                Vector(0, 0, 0),     // kt - transmissão (idem)
+                face.ns              // eta - usando brilho como "rugosidade"/fator
+            );
+
+            materials.push_back(mat);
+
             if (valid_normals) {
                 for (int i = 0; i < 3; ++i) {
                     int v = v_idx[i];
@@ -230,7 +232,6 @@ namespace Geometry
             }
         }
 
-        // Normaliza normais dos vértices
         for (size_t i = 0; i < vertex_normals.size(); ++i) {
             if (counts[i] > 0) {
                 vertex_normals[i] = (vertex_normals[i] / double(counts[i])).normalized();

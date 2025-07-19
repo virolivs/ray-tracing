@@ -2,9 +2,9 @@
 #include "../lib/vector.h"
 
 struct Material {
+    Vector ka;  // ambiente
     Vector kd;  // difuso
     Vector ks;  // especular
-    Vector ka;  // ambiente
     Vector kr;  // reflexão
     Vector kt;  // transmissão
     double eta; // rugosidade

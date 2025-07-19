@@ -70,11 +70,11 @@ namespace Geometry
         std::vector<std::array<int, 3>> indices;
         std::vector<Vector> triangle_normals;
         std::vector<Vector> vertex_normals;
+        std::vector<Vector> face_colors;  // cores por face
+        std::vector<Material> materials;  // materiais por face
 
-        explicit Mesh(objReader& reader, const Material& material);
-        explicit Mesh(const std::vector<Point>& vertices,
-                      const std::vector<std::array<int, 3>>& indices,
-                      const Material& material);
+        // Construtor que recebe só o objReader
+        explicit Mesh(objReader& reader);
 
         Mesh() = default;
         Mesh(const Mesh&) = default;

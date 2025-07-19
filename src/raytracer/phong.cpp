@@ -32,13 +32,23 @@ Vector phongIllumination(
         double attenuation = 1.0 / (distance * distance);        // atenuação quadrática
 
         Ray shadowRay(point + normal * 0.001, lightDir);         // raio sombra para evitar acne de sombra
+
         bool inShadow = false;
 
-        // verifica se o ponto está em sombra para esta luz
+        // Para cada objeto na cena
         for (const auto& obj : objects) {
+
+            // Testa se o raio que vai do ponto até a luz (shadowRay) intercepta o objeto
             RT::Trace shadowTrace = obj->hit(shadowRay);
+
+            // Se o raio colidiu com o objeto (hit == true)
+            // E essa colisão está mais perto do que a distância até a luz (shadowTrace.t < distance)
             if (shadowTrace.hit && shadowTrace.t < distance) {
+
+                // Então o ponto está em sombra para essa luz
                 inShadow = true;
+
+                // Como já sabemos que está em sombra, não precisamos testar os outros objetos
                 break;
             }
         }
@@ -47,7 +57,7 @@ Vector phongIllumination(
             // soma contribuição difusa e especular com atenuação
             Vector diffuse = material.kd * light.intensity * diff;
             Vector specular = material.ks * light.intensity * spec;
-            color += (diffuse + specular); //* attenuation;
+            color += (diffuse + specular); // * attenuation;
         }
         // se em sombra, só luz ambiente já foi adicionada no começo
     }
