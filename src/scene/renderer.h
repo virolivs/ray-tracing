@@ -8,6 +8,7 @@
 #include "lib/ray.h"
 #include "lib/vector.h"
 #include "scene/camera.h"
+#include "light.h" 
 
 template <typename T>
 T clamp(T value, T min, T max) {

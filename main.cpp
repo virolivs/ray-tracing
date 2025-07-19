@@ -17,6 +17,7 @@
 #include "src/scene/renderer.h"
 #include "src/matrix/matrix.h"
 #include "src/matrix/matrixTransforms.h"
+#include "src/scene/light.h"  
 
 // Parte do phong
 #include "src/scene/light.h"
@@ -35,7 +36,7 @@ int main() {
     Camera camera { camera_position, look_at, up_vector, vertical_fov, image_height, image_width };
 
     // Load the object
-    objReader obj("inputs/pyramid.obj");
+    objReader obj("inputs/cubo.obj");
 
     // Luzes da cena
     SceneLights lights;
@@ -94,6 +95,7 @@ int main() {
     scene.push_back(combined_mesh);
     render_scene(camera, "outputs/combined.ppm", image_width, image_height, lights);
     scene.clear();
+
 
     return 0;
 }

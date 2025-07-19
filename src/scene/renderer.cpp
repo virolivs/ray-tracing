@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include "light.h" 
+#include "raytracer/phong.h" 
 
 std::vector<std::shared_ptr<Hittable>> scene;
 
@@ -25,7 +27,7 @@ Vector color(const Ray& ray, const SceneLights& lights) {
         return Vector(1.0f, 1.0f, 1.0f) * (1.0f - t) + Vector(0.5f, 0.7f, 1.0f) * t;
     }
 
-    return phongIllumination(closest_hit, lights, scene);
+    return phongIllumination(closest_hit, ray, lights, scene);
 }
 
 
