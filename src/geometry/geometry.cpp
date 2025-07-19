@@ -169,59 +169,74 @@ namespace Geometry
         return RT::Trace{ false, 0, ray.origin, {}, {}, this };
     }
 
-    Mesh::Mesh(objReader& reader) : Hittable() {
+    Mesh::Mesh(objReader& reader) : Hittable()
+    {
+        // Carrega os vértices, faces e normais a partir do reader
         this->vertices = reader.getVertices();
         const auto& faces = reader.getFaces();
         const auto& normals = reader.getNormals();
 
+        // Reserva espaço para as estruturas de dados baseadas na quantidade de faces
         indices.reserve(faces.size());
         triangle_normals.reserve(faces.size());
         face_colors.reserve(faces.size());
         materials.reserve(faces.size());
 
+        // Inicializa os vetores de normais por vértice e um contador para média
         vertex_normals.resize(vertices.size(), Vector(0, 0, 0));
         std::vector<int> counts(vertices.size(), 0);
 
+        // Para cada face carregada
         for (const auto& face : faces) {
+            // Índices dos vértices e das normais da face
             std::array<int, 3> v_idx = { face.verticeIndice[0], face.verticeIndice[1], face.verticeIndice[2] };
             std::array<int, 3> n_idx = { face.normalIndice[0], face.normalIndice[1], face.normalIndice[2] };
 
+            // Armazena os índices dos vértices da face
             indices.push_back(v_idx);
 
             Vector face_normal;
+
+            // Verifica se os índices de normais são válidos
             bool valid_normals = n_idx[0] >= 0 && n_idx[1] >= 0 && n_idx[2] >= 0 &&
                                 n_idx[0] < normals.size() && n_idx[1] < normals.size() && n_idx[2] < normals.size();
 
             if (valid_normals) {
+                // Se todas as normais forem iguais, usa diretamente
                 if (n_idx[0] == n_idx[1] && n_idx[1] == n_idx[2]) {
                     face_normal = normals[n_idx[0]];
                 } else {
+                    // Caso contrário, tira a média das três normais
                     face_normal = (normals[n_idx[0]] + normals[n_idx[1]] + normals[n_idx[2]]) / 3.0;
                 }
             } else {
+                // Se não houver normais válidas, calcula a normal geométrica da face (produto vetorial)
                 const Point& a = vertices[v_idx[0]];
                 const Point& b = vertices[v_idx[1]];
                 const Point& c = vertices[v_idx[2]];
                 face_normal = cross(b - a, c - a);
             }
 
+            // Normaliza a normal da face e armazena
             triangle_normals.push_back(face_normal.normalized());
 
-            // Cor difusa para visualização rápida
+            // Define uma cor base difusa para a face (pode ser usada para visualização)
             face_colors.push_back(face.kd);
 
-            // Material completo (usando campos que já vêm no face)
+            // Cria o material completo da face com os atributos carregados do .mtl
             Material mat(
-                face.kd,             // kd - difuso
-                face.ks,             // ks - especular
-                face.ka,             // ka - ambiente
-                Vector(0, 0, 0),     // kr - reflexão (se quiser usar face.ke ou outra coisa aqui, pode adaptar)
-                Vector(0, 0, 0),     // kt - transmissão (idem)
-                face.ns              // eta - usando brilho como "rugosidade"/fator
+                face.kd,             // kd - componente difusa
+                face.ks,             // ks - componente especular
+                face.ka,             // ka - componente ambiente
+                Vector(0, 0, 0),     // kr - reflexão (pode adaptar para face.ke, se necessário)
+                Vector(0, 0, 0),     // kt - transmissão
+                face.ns              // eta - rugosidade ou brilho (do MTL)
             );
 
+            // Armazena o material
             materials.push_back(mat);
 
+            // Se normais forem válidas, acumula para calcular a normal média por vértice
             if (valid_normals) {
                 for (int i = 0; i < 3; ++i) {
                     int v = v_idx[i];
@@ -232,12 +247,14 @@ namespace Geometry
             }
         }
 
+        // Calcula a normal média para cada vértice (normaliza após somar as contribuições)
         for (size_t i = 0; i < vertex_normals.size(); ++i) {
             if (counts[i] > 0) {
                 vertex_normals[i] = (vertex_normals[i] / double(counts[i])).normalized();
             }
         }
     }
+
 
 
     std::shared_ptr<Mesh> transformMesh(const Mesh& original, const Matrix& transform) 
