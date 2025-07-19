@@ -3,6 +3,8 @@
 #include "../lib/point.h"
 #include "../lib/vector.h"
 
+class Hittable;
+
 namespace RT
 {
     struct Trace

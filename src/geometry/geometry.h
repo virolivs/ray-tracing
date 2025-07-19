@@ -9,7 +9,7 @@
 #include "../utils/ObjReader.cpp"
 #include "hittable.h"
 #include "../matrix/matrix.h"
-#include "material.h" // novo include
+#include "material.h"
 
 namespace Geometry
 {

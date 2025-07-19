@@ -18,6 +18,6 @@ extern std::vector<std::shared_ptr<Hittable>> scene;
 
 Vector color(const Ray& ray);
 
-void render_scene(const Camera& camera, const std::string& filename, uint32_t image_width, uint32_t image_height);
+void render_scene(const Camera& camera, const std::string& filename, uint32_t image_width, uint32_t image_height, const SceneLights& lights);
 
 #endif
