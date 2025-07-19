@@ -1,5 +1,6 @@
 #include "phong.h"
 #include <vector>
+#include <iostream>
 #include <memory>
 #include <algorithm> // para std::max
 #include <cmath>     // para std::pow
@@ -46,10 +47,15 @@ Vector phongIllumination(
             // soma contribuição difusa e especular com atenuação
             Vector diffuse = material.kd * light.intensity * diff;
             Vector specular = material.ks * light.intensity * spec;
-            color += (diffuse + specular) * attenuation;
+            color += (diffuse + specular); //* attenuation;
         }
         // se em sombra, só luz ambiente já foi adicionada no começo
     }
 
+    //std::cout << "ka: " << material.ka << ", kd: " << material.kd << ", ks: " << material.ks << "\n";
+    std::cout << "Returning color " << color << "\n";
+
+
     return color;  // retorna cor final
 }
+
