@@ -15,12 +15,14 @@ namespace RT
         Point position {};
         Vector normal {};
         const Hittable* hittable {};  // ponteiro para o objeto atingido
+        int face_index {-1};          // índice da face atingida, -1 se não aplicável
 
         Trace() = default;
 
         Trace(bool hit, double t, const Point& origin, const Point& position,
-              const Vector& normal, const Hittable* hittable)
-            : hit(hit), t(t), origin(origin), position(position), normal(normal), hittable(hittable) {}
+              const Vector& normal, const Hittable* hittable, int face_index = -1)
+            : hit(hit), t(t), origin(origin), position(position), normal(normal),
+              hittable(hittable), face_index(face_index) {}
 
         Trace(const Trace&) = default;
         Trace& operator=(const Trace&) = default;

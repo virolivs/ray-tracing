@@ -7,15 +7,16 @@
 
 Vector phongIllumination(
     const RT::Trace& trace,
-    const Ray& ray, // adiciona o Ray original para usar direção do olho
+    const Ray& ray,
     const SceneLights& lights,
-    const std::vector<std::shared_ptr<Hittable>>& objects
+    const std::vector<std::shared_ptr<Hittable>>& objects,
+    const Material& material  // já vem aqui, não declare de novo
 ) {
-    const Point& point = trace.position;          // ponto de interseção
-    const Vector& normal = trace.normal;          // normal no ponto
-    const Vector viewDir = -ray.direction.normalized();  // direção do olho (raio invertido)
+    const Point& point = trace.position;
+    const Vector& normal = trace.normal;
+    const Vector viewDir = -ray.direction.normalized();
 
-    const Material& material = trace.hittable->material; // material do objeto atingido
+    //const Material& material = trace.hittable->material; // material do objeto atingido
 
     Vector color(0.0);  // cor inicial zero, usando double
 
@@ -63,7 +64,7 @@ Vector phongIllumination(
     }
 
     //std::cout << "ka: " << material.ka << ", kd: " << material.kd << ", ks: " << material.ks << "\n";
-    std::cout << "Returning color " << color << "\n";
+    //std::cout << "Returning color " << color << "\n";
 
 
     return color;  // retorna cor final

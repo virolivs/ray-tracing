@@ -38,6 +38,8 @@ int main() {
     // Load the object
     objReader obj("inputs/pyramid.obj");
 
+    /*
+
     auto faces = obj.getFaces();
     auto vertices = obj.getVertices();
     auto normals = obj.getNormals();
@@ -78,7 +80,7 @@ int main() {
         std::cout << "---------------------------\n";
     }
 
-    /*
+    */
 
     // Luzes da cena
     SceneLights lights;
@@ -139,8 +141,6 @@ int main() {
     scene.push_back(combined_mesh);
     render_scene(camera, "outputs/combined.ppm", image_width, image_height, lights);
     scene.clear();
-
-    */
 
 
     return 0;

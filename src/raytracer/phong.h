@@ -10,5 +10,6 @@ Vector phongIllumination(
     const RT::Trace& trace,
     const Ray& ray,
     const SceneLights& lights,
-    const std::vector<std::shared_ptr<Hittable>>& objects
+    const std::vector<std::shared_ptr<Hittable>>& objects,
+    const Material& material
 );

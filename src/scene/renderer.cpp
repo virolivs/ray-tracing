@@ -3,7 +3,8 @@
 #include <iostream>
 #include <limits>
 #include "light.h" 
-#include "raytracer/phong.h" 
+#include "raytracer/phong.h"
+#include "../geometry/geometry.h"
 
 std::vector<std::shared_ptr<Hittable>> scene;
 
@@ -27,7 +28,21 @@ Vector color(const Ray& ray, const SceneLights& lights) {
         return Vector(1.0f, 1.0f, 1.0f) * (1.0f - t) + Vector(0.5f, 0.7f, 1.0f) * t;
     }
 
-    return phongIllumination(closest_hit, ray, lights, scene);
+    // Aqui pegar material correto para Mesh (se for Mesh)
+    Material mat;
+    if (auto mesh = dynamic_cast<const Geometry::Mesh*>(closest_hit.hittable)) {
+        int idx = closest_hit.face_index;
+        if (idx >= 0 && idx < (int)mesh->materials.size()) {
+            mat = mesh->materials[idx];
+        } else {
+            mat = closest_hit.hittable->material;
+        }
+    } else {
+        mat = closest_hit.hittable->material;
+    }
+
+    // Adaptar phongIllumination para receber material como parâmetro
+    return phongIllumination(closest_hit, ray, lights, scene, mat);
 }
 
 

@@ -139,7 +139,7 @@ namespace Geometry
         double closest_t = std::numeric_limits<double>::max();
         Point hit_position {};
         Vector hit_normal {};
-        size_t hit_index = 0;
+        int hit_index = -1;  // usar int para combinar com Trace.face_index
 
         for (size_t i = 0; i < indices.size(); ++i)
         {
@@ -148,7 +148,8 @@ namespace Geometry
             const Point& b = vertices[tri[1]];
             const Point& c = vertices[tri[2]];
 
-            Triangle temp(a, b, c, this->material);
+            // Use o material correto da face i
+            Triangle temp(a, b, c, materials[i]);
             RT::Trace result = temp.hit(ray);
 
             if (result.hit && result.t < closest_t)
@@ -157,17 +158,19 @@ namespace Geometry
                 closest_t = result.t;
                 hit_position = result.position;
                 hit_normal = result.normal;
-                hit_index = i;
+                hit_index = static_cast<int>(i);
             }
         }
 
         if (hit_any)
         {
-            return RT::Trace{ true, closest_t, ray.origin, hit_position, hit_normal, this };
+            // Retorna com o índice da face atingida
+            return RT::Trace{ true, closest_t, ray.origin, hit_position, hit_normal, this, hit_index };
         }
 
-        return RT::Trace{ false, 0, ray.origin, {}, {}, this };
+        return RT::Trace{ false, 0, ray.origin, {}, {}, this, -1 };
     }
+
 
     Mesh::Mesh(objReader& reader) : Hittable()
     {
