@@ -17,7 +17,7 @@ struct Vector
         double v[3] {};
     };
 
-    Vector() : x { 0.0f }, y { 0.0f }, z { 0.0f } {}
+    Vector() : x { 0.0 }, y { 0.0 }, z { 0.0 } {}
     explicit Vector(double x, double y, double z) : x { x }, y { y }, z { z } {}
     explicit Vector(double s) : x { s }, y { s }, z { s } {}
 

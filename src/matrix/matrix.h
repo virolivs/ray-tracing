@@ -14,7 +14,7 @@ struct Matrix {
         double w = data[3][0] * p.x + data[3][1] * p.y + data[3][2] * p.z + data[3][3];
 
         // If w is not 0 or 1, normalize the result
-        if (w != 0.0f and w!= 1.0f) {
+        if (w != 0.0 and w!= 1.0) {
             x /= w;
             y /= w;
             z /= w;

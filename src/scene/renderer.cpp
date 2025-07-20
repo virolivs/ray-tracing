@@ -24,8 +24,8 @@ Vector color(const Ray& ray, const SceneLights& lights) {
 
     if (!any_hit) {
         Vector unit_direction = ray.direction.normalized();
-        double t = 0.5f * (unit_direction.y + 1.0f);
-        return Vector(1.0f, 1.0f, 1.0f) * (1.0f - t) + Vector(0.5f, 0.7f, 1.0f) * t;
+        double t = 0.5 * (unit_direction.y + 1.0);
+        return Vector(1.0, 1.0, 1.0) * (1.0 - t) + Vector(0.5f, 0.7f, 1.0) * t;
     }
 
     Material mat;

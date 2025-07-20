@@ -21,10 +21,10 @@
 
 int main() {
     // Image and camera params
-    Point camera_position { 3.0f, 3.0f, 5.0f };
-    Point look_at { 0.0f, 0.0f, 0.0f };
-    Vector up_vector { 0.0f, 1.0f, 0.0f };
-    double vertical_fov = 60.0f * M_PI / 180.0f;
+    Point camera_position { 3.0, 3.0, 5.0 };
+    Point look_at { 0.0, 0.0, 0.0 };
+    Vector up_vector { 0.0, 1.0, 0.0 };
+    double vertical_fov = 60.0 * M_PI / 180.0;
     uint32_t image_height = 500;
     uint32_t image_width = 500;
 
@@ -37,8 +37,8 @@ int main() {
     // Scene lights
     SceneLights lights;
     lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
-    lights.lights.push_back(Light(Point(5.0f, 5.0f, 5.0f), Vector(1.0f, 1.0f, 1.0f)));
-    lights.lights.push_back(Light(Point(1.0f, 2.0f, 3.0f), Vector(1.0f, 1.0f, 1.0f)));
+    lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0, 1.0, 1.0)));
+    lights.lights.push_back(Light(Point(1.0, 2.0, 3.0), Vector(1.0, 1.0, 1.0)));
 
     ///////////////////////////
     // CUBE TEST CASES
@@ -51,7 +51,7 @@ int main() {
     scene.clear();
 
     // Translation transformation
-    Matrix translation = translationMatrix(0.0f, 0.0f, 2.0f);
+    Matrix translation = translationMatrix(0.0, 0.0, 2.0);
     auto transladed_mesh = Geometry::transformMesh(*original_mesh, translation);
     scene.push_back(transladed_mesh);
     render_scene(camera, "outputs/transladed.ppm", image_width, image_height, lights);
@@ -65,14 +65,14 @@ int main() {
     scene.clear();
 
     // Scaling transformation
-    Matrix scale = scaleMatrix(1.0f, 2.0f, 0.5f);  
+    Matrix scale = scaleMatrix(1.0, 2.0, 0.5f);  
     auto scaled_mesh = Geometry::transformMesh(*original_mesh, scale);
     scene.push_back(scaled_mesh);
     render_scene(camera, "outputs/scaled.ppm", image_width, image_height, lights);
     scene.clear();
 
     // Shearing transformation
-    Matrix shear = shearMatrix(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    Matrix shear = shearMatrix(0.5f, 0.0, 0.0, 0.0, 0.0, 0.0);
     auto sheared_mesh = Geometry::transformMesh(*original_mesh, shear);
     scene.push_back(sheared_mesh);
     render_scene(camera, "outputs/sheared.ppm", image_width, image_height, lights);
@@ -87,11 +87,11 @@ int main() {
 
     // Combined transformation: translate, rotate, shear, and scale
     Matrix combined = 
-        translationMatrix(0.0f, -1.0f, -1.0f) *
+        translationMatrix(0.0, -1.0, -1.0) *
         rotationMatrix('Y', M_PI / 6) *
         rotationMatrix('X', M_PI / 6) *
-        shearMatrix(0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) *
-        scaleMatrix(1.2f, 0.8f, 1.0f);
+        shearMatrix(0.3f, 0.0, 0.0, 0.0, 0.0, 0.0) *
+        scaleMatrix(1.2f, 0.8f, 1.0);
 
     auto combined_mesh = Geometry::transformMesh(*original_mesh, combined);
     scene.push_back(combined_mesh);
@@ -105,42 +105,42 @@ int main() {
     ///////////////////////////
     
     lights.lights.pop_back();
-    Point camera_position_spheres { 0.0f, 1.5f, 5.0f };
+    Point camera_position_spheres { 0.0, 1.5f, 5.0 };
     Camera camera_spheres { camera_position_spheres, look_at, up_vector, vertical_fov, image_height, image_width };
-    lights.lights.push_back(Light(Point(5.0f, 5.0f, 5.0f), Vector(0.5f, 0.5f, 0.5f)));
+    lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(0.5f, 0.5f, 0.5f)));
 
 
     // Material for sphere 1 (red)
     Material red_material(
-        Vector(0.1f, 0.0f, 0.0f), // ka 
-        Vector(0.7f, 0.0f, 0.0f), // kd    
+        Vector(0.1f, 0.0, 0.0), // ka 
+        Vector(0.7f, 0.0, 0.0), // kd    
         Vector(0.5f, 0.5f, 0.5f), // ks 
-        Vector(0.0f, 0.0f, 0.0f), // ke  
-        50.0f,                    // shininess 
-        1.0f,                     // ior       
-        1.0f                      // opacity    
+        Vector(0.0, 0.0, 0.0), // ke  
+        50.0,                    // shininess 
+        1.0,                     // ior       
+        1.0                      // opacity    
     );
 
     // Material for sphere 2 (blue)
     Material blue_material(
-        Vector(0.0f, 0.0f, 0.1f), // ka 
-        Vector(0.0f, 0.0f, 0.7f), // kd 
-        Vector(1.0f, 1.0f, 1.0f), // ks 
-        Vector(0.0f, 0.0f, 0.0f), // ke 
-        50.0f,                    // shininess 
-        1.0f,                     // ior 
-        1.0f                      // opacity 
+        Vector(0.0, 0.0, 0.1f), // ka 
+        Vector(0.0, 0.0, 0.7f), // kd 
+        Vector(1.0, 1.0, 1.0), // ks 
+        Vector(0.0, 0.0, 0.0), // ke 
+        50.0,                    // shininess 
+        1.0,                     // ior 
+        1.0                      // opacity 
     );
 
     // Material for sphere 3 (green)
     Material green_material(
-        Vector(0.0f, 0.1f, 0.0f), // ka 
-        Vector(0.0f, 0.7f, 0.0f), // kd 
+        Vector(0.0, 0.1f, 0.0), // ka 
+        Vector(0.0, 0.7f, 0.0), // kd 
         Vector(0.5f, 0.5f, 0.5f), // ks 
-        Vector(0.0f, 0.0f, 0.0f), // ke 
-        50.0f,                    // shininess 
-        1.0f,                     // ior 
-        1.0f                      // opacity 
+        Vector(0.0, 0.0, 0.0), // ke 
+        50.0,                    // shininess 
+        1.0,                     // ior 
+        1.0                      // opacity 
     );
 
     // Material for plane (grey)
@@ -148,33 +148,33 @@ int main() {
         Vector(0.1f, 0.1f, 0.1f), // ka 
         Vector(0.5f, 0.5f, 0.5f), // kd 
         Vector(0.2f, 0.2f, 0.2f), // ks 
-        Vector(0.0f, 0.0f, 0.0f), // ke 
-        10.0f,                    // shininess 
-        1.0f,                     // ior 
-        1.0f                      // opacity 
+        Vector(0.0, 0.0, 0.0), // ke 
+        10.0,                    // shininess 
+        1.0,                     // ior 
+        1.0                      // opacity 
     );
 
     auto sphere1 = std::make_shared<Geometry::Sphere>(
-        Point(-1.0f, 1.5f, 0.0f),
-        1.0f,
+        Point(-1.0, 1.5f, 0.0),
+        1.0,
         red_material
     );
 
     auto sphere2 = std::make_shared<Geometry::Sphere>(
-        Point(1.0f, 0.5f, 1.5f),
-        1.0f,
+        Point(1.0, 0.5f, 1.5f),
+        1.0,
         blue_material
     );
 
      auto sphere3 = std::make_shared<Geometry::Sphere>(
-        Point(0.0f, 0.5f, 0.5f), 
+        Point(0.0, 0.5f, 0.5f), 
         0.5f,                    
         green_material
     );
 
     auto plane = std::make_shared<Geometry::Plane>(
-        Point(0.0f, 0.0f, 0.0f),
-        Vector(0.0f, 1.0f, 0.0f),
+        Point(0.0, 0.0, 0.0),
+        Vector(0.0, 1.0, 0.0),
         gray_material
     );
 

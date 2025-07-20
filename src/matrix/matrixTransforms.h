@@ -7,7 +7,7 @@
 Matrix identityMatrix() {
     Matrix m = {};
     for (int i = 0; i < 4; ++i)
-        m.data[i][i] = 1.0f;
+        m.data[i][i] = 1.0;
     return m;
 }
 
@@ -26,7 +26,7 @@ Matrix scaleMatrix(double sx, double sy, double sz) {
     m.data[0][0] = sx;
     m.data[1][1] = sy;
     m.data[2][2] = sz;
-    m.data[3][3] = 1.0f;
+    m.data[3][3] = 1.0;
     return m;
 }
 
@@ -71,9 +71,9 @@ Matrix rotationMatrix(char axis, double angle) {
 // reflectX → inverte X (YZ plane), reflectY → inverte Y (XZ plane), reflectZ → inverte Z (XY plane)
 Matrix reflectionMatrix(bool reflectX, bool reflectY, bool reflectZ) {
     Matrix m = identityMatrix();
-    if (reflectX) m.data[0][0] = -1.0f;
-    if (reflectY) m.data[1][1] = -1.0f;
-    if (reflectZ) m.data[2][2] = -1.0f;
+    if (reflectX) m.data[0][0] = -1.0;
+    if (reflectY) m.data[1][1] = -1.0;
+    if (reflectZ) m.data[2][2] = -1.0;
     return m;
 }
 
@@ -98,7 +98,7 @@ Matrix operator*(const Matrix& a, const Matrix& b) {
     {
         for (int j = 0; j < 4; ++j)
         {
-            double sum = 0.0f;
+            double sum = 0.0;
             for (int k = 0; k < 4; ++k)
             {
                 sum += a.data[i][k] * b.data[k][j];

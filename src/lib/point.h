@@ -18,7 +18,7 @@ struct Point
         double p[3] {};
     };
 
-    Point() : x { 0.0f }, y { 0.0f }, z { 0.0f } {}
+    Point() : x { 0.0 }, y { 0.0 }, z { 0.0 } {}
     explicit Point(double x, double y, double z) : x { x }, y { y }, z { z } {}
     explicit Point(double s) : x { s }, y { s }, z { s } {}
 

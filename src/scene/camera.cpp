@@ -13,7 +13,7 @@ Camera::Camera(Point center, Point target, Vector up, double vertical_fov,
     assert(pixel_height != 0 && pixel_width != 0);
     aspect_ratio = static_cast<double>(pixel_width) / static_cast<double>(pixel_height);
 
-    sensor_height = 2.0f * std::tan(vertical_fov / 2.0f);
+    sensor_height = 2.0 * std::tan(vertical_fov / 2.0);
     sensor_width = aspect_ratio * sensor_height;
 
     w = target - center;
@@ -24,7 +24,7 @@ Camera::Camera(Point center, Point target, Vector up, double vertical_fov,
     v = v.normalized();
 
     u = cross(v, w);
-    lower_left_pixel = center - (sensor_width / 2.0f) * u - (sensor_height / 2.0f) * v - w;
+    lower_left_pixel = center - (sensor_width / 2.0) * u - (sensor_height / 2.0) * v - w;
 }
 
 Ray Camera::cast_ray(const uint32_t& px, const uint32_t& py) const
