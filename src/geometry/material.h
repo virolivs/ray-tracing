@@ -6,9 +6,9 @@ struct Material {
     Vector kd;        // difuso
     Vector ks;        // especular
     Vector ke;        // emissivo
-    double shininess; // Ns
-    double ior;       // Ni
-    double opacity;   // d
+    double shininess; // Ns (brilho)
+    double ior;       // Ni (indice de refração)
+    double opacity;   // d  (opacidade)
 
     Material(
         const Vector& ka = Vector(0, 0, 0),

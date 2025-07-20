@@ -2,48 +2,53 @@
 #include <vector>
 #include <iostream>
 #include <memory>
-#include <algorithm> // para std::max
-#include <cmath>     // para std::pow
+#include <algorithm>
+#include <cmath>
 
 Vector phongIllumination(
     const RT::Trace& trace,
     const Ray& ray,
     const SceneLights& lights,
     const std::vector<std::shared_ptr<Hittable>>& objects,
-    const Material& material  // já vem aqui, não declare de novo
+    const Material& material
 ) {
+    // Posição, normal e direção da câmera no ponto de interseção, usadas no modelo de iluminação
     const Point& point = trace.position;
     const Vector& normal = trace.normal;
     const Vector viewDir = -ray.direction.normalized();
 
-    //const Material& material = trace.hittable->material; // material do objeto atingido
+    // Inicia a cor zerada
+    Vector color(0.0);
 
-    Vector color(0.0);  // cor inicial zero, usando double
-
-    color += material.ka * lights.ambient_color;  // contribuição da luz ambiente
+    // Contribuição da luz ambiente
+    color += material.ka * lights.ambient_color;
 
     for (const auto& light : lights.lights) {
-        Vector lightDir = (light.position - point).normalized(); // direção da luz
+        // Direção da luz normalizada
+        Vector lightDir = (light.position - point).normalized();
 
-        double diff = std::max(0.0, dot(normal, lightDir));      // componente difusa
-        Vector reflectDir = reflect(-lightDir, normal);          // direção refletida
-        double spec = std::pow(std::max(0.0, dot(viewDir, reflectDir)), material.shininess);  // componente especular
+        // Componente difusa
+        double diff = std::max(0.0, dot(normal, lightDir));
 
-        double distance = (light.position - point).norm();       // distância para atenuação
-        double attenuation = 1.0 / (distance * distance);        // atenuação quadrática
+        // Direção refletida 
+        Vector reflectDir = (-lightDir) - 2.0 * dot(-lightDir, normal) * normal;
 
-        Ray shadowRay(point + normal * 0.001, lightDir);         // raio sombra para evitar acne de sombra
+        // Componente especular
+        double spec = std::pow(std::max(0.0, dot(viewDir, reflectDir)), material.shininess);
 
-        bool inShadow = false;
+        // Distância da luz ao ponto
+        double distance = (light.position - point).norm();
+
+        // Raio sombra (0.001 para evitar quando o raio de sombra colide com a própria superfície de onde foi emitido - "acne de sombra")
+        Ray shadowRay(point + normal * 0.001, lightDir);
 
         // Para cada objeto na cena
+        bool inShadow = false;
         for (const auto& obj : objects) {
-
-            // Testa se o raio que vai do ponto até a luz (shadowRay) intercepta o objeto
+            // Testa se o raio que vai do ponto até a luz (shadowRay) intercepta algum objeto
             RT::Trace shadowTrace = obj->hit(shadowRay);
 
-            // Se o raio colidiu com o objeto (hit == true)
-            // E essa colisão está mais perto do que a distância até a luz (shadowTrace.t < distance)
+            // Se o raio colidiu com o objeto e essa colisão está mais perto do que a distância até a luz
             if (shadowTrace.hit && shadowTrace.t < distance) {
 
                 // Então o ponto está em sombra para essa luz
@@ -55,18 +60,13 @@ Vector phongIllumination(
         }
 
         if (!inShadow) {
-            // soma contribuição difusa e especular com atenuação
+            // Soma contribuição difusa e especular com atenuação
             Vector diffuse = material.kd * light.intensity * diff;
             Vector specular = material.ks * light.intensity * spec;
-            color += (diffuse + specular); // * attenuation;
+            color += (diffuse + specular);
         }
-        // se em sombra, só luz ambiente já foi adicionada no começo
     }
 
-    //std::cout << "ka: " << material.ka << ", kd: " << material.kd << ", ks: " << material.ks << "\n";
-    //std::cout << "Returning color " << color << "\n";
-
-
-    return color;  // retorna cor final
+    return color;
 }
 

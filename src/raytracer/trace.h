@@ -14,8 +14,8 @@ namespace RT
         Point origin {};
         Point position {};
         Vector normal {};
-        const Hittable* hittable {};  // ponteiro para o objeto atingido
-        int face_index {-1};          // índice da face atingida, -1 se não aplicável
+        const Hittable* hittable {};
+        int face_index {-1};
 
         Trace() = default;
 

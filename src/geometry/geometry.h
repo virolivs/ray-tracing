@@ -82,7 +82,6 @@ namespace Geometry
 
         RT::Trace hit(const Ray& ray) const override;
 
-        void recalculateNormals();
     };
 
     std::shared_ptr<Mesh> transformMesh(const Mesh& original, const Matrix& transform);
