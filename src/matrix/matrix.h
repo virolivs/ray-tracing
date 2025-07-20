@@ -31,3 +31,35 @@ struct Matrix {
         return Vector(x, y, z);
     }
 };
+
+inline double det2(double a, double b, double c, double d) {
+    return a * d - b * c;
+}
+
+inline double det3(
+    double a1, double a2, double a3,
+    double b1, double b2, double b3,
+    double c1, double c2, double c3) 
+{
+    return a1 * det2(b2, b3, c2, c3)
+         - a2 * det2(b1, b3, c1, c3)
+         + a3 * det2(b1, b2, c1, c2);
+}
+
+inline double determinant(const Matrix& m) {
+    const auto& d = m.data;
+
+    double det = d[0][0] * det3(d[1][1], d[1][2], d[1][3],
+                               d[2][1], d[2][2], d[2][3],
+                               d[3][1], d[3][2], d[3][3]) 
+               - d[0][1] * det3(d[1][0], d[1][2], d[1][3],
+                               d[2][0], d[2][2], d[2][3],
+                               d[3][0], d[3][2], d[3][3]) 
+               + d[0][2] * det3(d[1][0], d[1][1], d[1][3],
+                               d[2][0], d[2][1], d[2][3],
+                               d[3][0], d[3][1], d[3][3]) 
+               - d[0][3] * det3(d[1][0], d[1][1], d[1][2],
+                               d[2][0], d[2][1], d[2][2],
+                               d[3][0], d[3][1], d[3][2]);
+    return det;
+}

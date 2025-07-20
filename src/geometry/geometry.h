@@ -70,10 +70,9 @@ namespace Geometry
         std::vector<std::array<int, 3>> indices;
         std::vector<Vector> triangle_normals;
         std::vector<Vector> vertex_normals;
-        std::vector<Vector> face_colors;  // cores por face
-        std::vector<Material> materials;  // materiais por face
+        std::vector<Vector> face_colors;
+        std::vector<Material> materials;
 
-        // Construtor que recebe só o objReader
         explicit Mesh(objReader& reader);
 
         Mesh() = default;
@@ -82,7 +81,10 @@ namespace Geometry
         Mesh& operator=(const Mesh&) = default;
 
         RT::Trace hit(const Ray& ray) const override;
+
+        void recalculateNormals();
     };
 
     std::shared_ptr<Mesh> transformMesh(const Mesh& original, const Matrix& transform);
+    
 }

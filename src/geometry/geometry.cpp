@@ -230,11 +230,54 @@
             new_mesh->vertices[i] = transform.applyToPoint(new_mesh->vertices[i]);
         }
 
-        for (size_t i = 0; i < new_mesh->vertex_normals.size(); ++i) {
-            new_mesh->vertex_normals[i] = transform.applyToVector(new_mesh->vertex_normals[i]).normalized();
+        // Detecta inversão de orientação pelo determinante
+        double det = determinant(transform);
+        if (det < 0) {
+            // Inverte "winding order" dos triângulos
+            for (auto& tri : new_mesh->indices) {
+                std::swap(tri[1], tri[2]);
+            }
         }
 
+        // Recalcula as normais com os pontos transformados
+        new_mesh->recalculateNormals();
+
         return new_mesh;
+    }
+
+    void Mesh::recalculateNormals()
+    {
+        // Limpa normais de vértice e inicializa contadores
+        vertex_normals.assign(vertices.size(), Vector(0, 0, 0));
+        std::vector<int> counts(vertices.size(), 0);
+
+        // Recalcula normais das faces
+        triangle_normals.clear();
+        triangle_normals.reserve(indices.size());
+
+        for (size_t i = 0; i < indices.size(); ++i) {
+            const auto& tri = indices[i];
+            const Point& a = vertices[tri[0]];
+            const Point& b = vertices[tri[1]];
+            const Point& c = vertices[tri[2]];
+
+            // Calcula normal da face
+            Vector normal_face = cross(b - a, c - a).normalized();
+            triangle_normals.push_back(normal_face);
+
+            // Acumula normal da face para cada vértice do triângulo
+            for (int j = 0; j < 3; ++j) {
+                vertex_normals[tri[j]] += normal_face;
+                counts[tri[j]]++;
+            }
+        }
+
+        // Normaliza normais dos vértices
+        for (size_t i = 0; i < vertex_normals.size(); ++i) {
+            if (counts[i] > 0) {
+                vertex_normals[i] = (vertex_normals[i] / double(counts[i])).normalized();
+            }
+        }
     }
 
 }
