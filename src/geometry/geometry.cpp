@@ -137,73 +137,58 @@
 
     Mesh::Mesh(objReader& reader) : Hittable()
     {
-        // Carrega os vértices, faces e normais a partir do reader
         this->vertices = reader.getVertices();
         const auto& faces = reader.getFaces();
         const auto& normals = reader.getNormals();
 
-        // Reserva espaço para as estruturas de dados baseadas na quantidade de faces
         indices.reserve(faces.size());
         triangle_normals.reserve(faces.size());
         face_colors.reserve(faces.size());
         materials.reserve(faces.size());
 
-        // Inicializa os vetores de normais por vértice e um contador para média
         vertex_normals.resize(vertices.size(), Vector(0, 0, 0));
         std::vector<int> counts(vertices.size(), 0);
 
-        // Para cada face carregada
         for (const auto& face : faces) {
-            // Índices dos vértices e das normais da face
             std::array<int, 3> v_idx = { face.verticeIndice[0], face.verticeIndice[1], face.verticeIndice[2] };
             std::array<int, 3> n_idx = { face.normalIndice[0], face.normalIndice[1], face.normalIndice[2] };
 
-            // Armazena os índices dos vértices da face
             indices.push_back(v_idx);
 
             Vector face_normal;
 
-            // Verifica se os índices de normais são válidos
             bool valid_normals = n_idx[0] >= 0 && n_idx[1] >= 0 && n_idx[2] >= 0 &&
                                 n_idx[0] < normals.size() && n_idx[1] < normals.size() && n_idx[2] < normals.size();
 
             if (valid_normals) {
-                // Se todas as normais forem iguais, usa diretamente
                 if (n_idx[0] == n_idx[1] && n_idx[1] == n_idx[2]) {
                     face_normal = normals[n_idx[0]];
                 } else {
-                    // Caso contrário, tira a média das três normais
                     face_normal = (normals[n_idx[0]] + normals[n_idx[1]] + normals[n_idx[2]]) / 3.0;
                 }
             } else {
-                // Se não houver normais válidas, calcula a normal geométrica da face (produto vetorial)
                 const Point& a = vertices[v_idx[0]];
                 const Point& b = vertices[v_idx[1]];
                 const Point& c = vertices[v_idx[2]];
                 face_normal = cross(b - a, c - a);
             }
 
-            // Normaliza a normal da face e armazena
             triangle_normals.push_back(face_normal.normalized());
 
-            // Define uma cor base difusa para a face (pode ser usada para visualização)
             face_colors.push_back(face.kd);
 
-            // Cria o material completo da face com os atributos carregados do .mtl
             Material mat(
-                face.ka,         // Ka
-                face.kd,         // Kd
-                face.ks,         // Ks
-                face.ke,         // Ke
-                face.ns,         // shininess
-                face.ni,         // ior
-                face.d           // opacity
+                face.ka,
+                face.kd,
+                face.ks,
+                face.ke,
+                face.ns,
+                face.ni,
+                face.d
             );
 
-            // Armazena o material
             materials.push_back(mat);
 
-            // Se normais forem válidas, acumula para calcular a normal média por vértice
             if (valid_normals) {
                 for (int i = 0; i < 3; ++i) {
                     int v = v_idx[i];
@@ -214,7 +199,6 @@
             }
         }
 
-        // Calcula a normal média para cada vértice (normaliza após somar as contribuições)
         for (size_t i = 0; i < vertex_normals.size(); ++i) {
             if (counts[i] > 0) {
                 vertex_normals[i] = (vertex_normals[i] / double(counts[i])).normalized();
@@ -226,20 +210,16 @@
     {
         auto new_mesh = std::make_shared<Geometry::Mesh>(original);
 
-        // Aplica a transformação 4x4 a cada ponto
         for (size_t i = 0; i < new_mesh->vertices.size(); ++i) {
             new_mesh->vertices[i] = transform.applyToPoint(new_mesh->vertices[i]);
         }
 
-        // Aplica a transformação 3x3 a cada vetor
         for (size_t i = 0; i < new_mesh->vertex_normals.size(); ++i) {
             new_mesh->vertex_normals[i] = transform.applyToVector(new_mesh->vertex_normals[i]).normalized();
         }
 
-        // Detecta inversão de orientação pelo determinante
         double det = determinant(transform);
         if (det < 0) {
-            // Inverte "winding order" dos triângulos
             for (auto& tri : new_mesh->indices) {
                 std::swap(tri[1], tri[2]);
             }

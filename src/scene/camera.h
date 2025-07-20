@@ -17,10 +17,8 @@ private:
     double vertical_fov {};
     double aspect_ratio {};
 
-    // world dimensions
     double sensor_height, sensor_width {};
 
-    // pixel dimensions
     uint32_t pixel_height, pixel_width {};
 
     Point lower_left_pixel {};

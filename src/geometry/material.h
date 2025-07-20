@@ -2,13 +2,13 @@
 #include "../lib/vector.h"
 
 struct Material {
-    Vector ka;        // ambiente
-    Vector kd;        // difuso
-    Vector ks;        // especular
-    Vector ke;        // emissivo
-    double shininess; // Ns (brilho)
-    double ior;       // Ni (indice de refração)
-    double opacity;   // d  (opacidade)
+    Vector ka;
+    Vector kd;
+    Vector ks;
+    Vector ke;
+    double shininess;
+    double ior;
+    double opacity;
 
     Material(
         const Vector& ka = Vector(0, 0, 0),

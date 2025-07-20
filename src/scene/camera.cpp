@@ -16,7 +16,6 @@ Camera::Camera(Point center, Point target, Vector up, double vertical_fov,
     sensor_height = 2.0f * std::tan(vertical_fov / 2.0f);
     sensor_width = aspect_ratio * sensor_height;
 
-    // Normalized vector from the target to the camera center
     w = target - center;
     w = w.normalized();
     w = -w;
