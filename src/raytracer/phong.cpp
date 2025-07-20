@@ -50,5 +50,9 @@ Vector phongIllumination(
         }
     }
 
+    color += material.ke;
+
+    color = material.opacity * color;
+
     return color;
 }
