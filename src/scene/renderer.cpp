@@ -80,41 +80,47 @@ Vector color(const Ray& ray, const SceneLights& lights, int depth = 0) {
     // ============================================
     // 6. Calcular cor da refração recursivamente (se material for parcialmente transparente)
     // ============================================
-    Vector refractedColor(0.0);
+   Vector refractedColor(0.0);
     if (mat.opacity < 1.0) {
-        Vector D = ray.direction.normalized();
-        Vector N = closest_hit.normal.normalized();
-        double eta = 1.0 / mat.ior; // ar para vidro
-        double cosi = clamp(dot(D, N), -1.0, 1.0);
-        if (cosi < 0) {
-            cosi = -cosi;
-        } else {
-            eta = mat.ior; // vidro para ar
-            N = -N;        // inverter normal
-        }
+    Vector D = ray.direction.normalized();
+    Vector N = closest_hit.normal.normalized();
+    double ior_in = 1.0;
+    double ior_out = mat.ior;
+    bool entering = dot(D, N) < 0;
 
-        double k = 1 - eta * eta * (1 - cosi * cosi);
-        if (k >= 0) {
-            Vector refractedDir = eta * D + (eta * cosi - std::sqrt(k)) * N;
-            Point refract_origin = closest_hit.position + bias * N * (dot(D, N) < 0 ? 1.0 : -1.0);
-            Ray refractedRay(refract_origin, refractedDir.normalized());
-            refractedColor = color(refractedRay, lights, depth + 1);
-        } else {
-            // Reflexão total interna
-            refractedColor = reflectedColor;
-        }
+    if (!entering) {
+        std::swap(ior_in, ior_out);
+        N = -N;
     }
+
+    double eta = ior_in / ior_out;
+    double cosi = -dot(D, N);
+    double k = 1.0 - eta * eta * (1.0 - cosi * cosi);
+
+    if (k >= 0) {
+        Vector refractedDir = eta * D + (eta * cosi - std::sqrt(k)) * N;
+        Point refract_origin = closest_hit.position + bias * refractedDir;
+        Ray refractedRay(refract_origin, refractedDir.normalized());
+        refractedColor = color(refractedRay, lights, depth + 1);
+    } else {
+        // Reflexão total interna
+        refractedColor = reflectedColor;
+    }
+}
+
 
     // ============================================
     // 7. Combinar cor local, reflexão e refração ponderadamente para cor final
     // ============================================
-    finalColor = (1.0 - mat.opacity) * refractedColor + mat.opacity * localColor;
-
+    // Peso de reflexão baseado na força do ks
     double reflectWeight = std::min(1.0, (mat.ks.x + mat.ks.y + mat.ks.z) / 3.0);
-    finalColor += reflectWeight * reflectedColor;
 
-    // ============================================
-    // 8. Garantir que a cor final fique dentro dos limites válidos (0 a 1)
+    // Combina cor refratada e local de acordo com opacidade
+    Vector transmitColor = (1.0 - mat.opacity) * refractedColor + mat.opacity * localColor;
+
+    // Combina com reflexão
+    finalColor = (1.0 - reflectWeight) * transmitColor + reflectWeight * reflectedColor;
+
     // ============================================
     finalColor = clamp_color(finalColor);
 
