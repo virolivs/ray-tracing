@@ -71,57 +71,87 @@ Vector color(const Ray& ray, const SceneLights& lights, int depth = 0) {
     // 5. Calcular cor da reflexão recursivamente
     // ============================================
     Vector reflectedColor(0.0);
+
+    // Cálculo da direção refletida usando a fórmula da reflexão: R = D - 2(D·N)N
     Vector reflectDir = ray.direction - 2.0 * dot(ray.direction, closest_hit.normal) * closest_hit.normal;
+
+    // Para evitar problemas de precisão (artefatos), aplicamos um deslocamento mínimo (bias)
+    // Isso impede que o raio refletido "recolida" no mesmo ponto imediatamente
     double bias = 0.001;
     Point reflect_origin = closest_hit.position + bias * closest_hit.normal * (dot(ray.direction, closest_hit.normal) < 0 ? 1.0 : -1.0);
+
+    // Criamos o novo raio refletido e chamamos a função `color` recursivamente
     Ray reflectedRay(reflect_origin, reflectDir.normalized());
     reflectedColor = color(reflectedRay, lights, depth + 1);
 
     // ============================================
     // 6. Calcular cor da refração recursivamente (se material for parcialmente transparente)
     // ============================================
-   Vector refractedColor(0.0);
+    Vector refractedColor(0.0);
+
+    // Se a opacidade for menor que 1, significa que o material é parcialmente transparente
     if (mat.opacity < 1.0) {
-    Vector D = ray.direction.normalized();
-    Vector N = closest_hit.normal.normalized();
-    double ior_in = 1.0;
-    double ior_out = mat.ior;
-    bool entering = dot(D, N) < 0;
 
-    if (!entering) {
-        std::swap(ior_in, ior_out);
-        N = -N;
+        // Direção do raio incidente
+        Vector D = ray.direction.normalized();
+
+        // Normal da superfície no ponto de interseção
+        Vector N = closest_hit.normal.normalized();
+
+        // Índice de refração de entrada (ar = 1.0) e saída (material)
+        double ior_in = 1.0;
+        double ior_out = mat.ior;
+
+        // Testa se o raio está entrando ou saindo do material
+        bool entering = dot(D, N) < 0;
+
+        if (!entering) {
+            // Se está saindo, inverte os índices e a normal
+            std::swap(ior_in, ior_out);
+            N = -N;
+        }
+
+        // Relação entre os índices de refração
+        double eta = ior_in / ior_out;
+
+        // Cálculo de cosθi
+        double cosi = -dot(D, N);
+
+        // Testa se há reflexão total interna
+        double k = 1.0 - eta * eta * (1.0 - cosi * cosi);
+
+        if (k >= 0) {
+            // Se não houver reflexão total interna, calcula a direção do raio refratado
+            Vector refractedDir = eta * D + (eta * cosi - std::sqrt(k)) * N;
+
+            // Desloca a origem do raio para evitar problemas de precisão (bias)
+            Point refract_origin = closest_hit.position + bias * refractedDir;
+
+            // Cria o raio refratado e chama recursivamente a função color
+            Ray refractedRay(refract_origin, refractedDir.normalized());
+            refractedColor = color(refractedRay, lights, depth + 1);
+        } else {
+            // Se houver reflexão total interna, considera apenas a reflexão
+            refractedColor = reflectedColor;
+        }
     }
-
-    double eta = ior_in / ior_out;
-    double cosi = -dot(D, N);
-    double k = 1.0 - eta * eta * (1.0 - cosi * cosi);
-
-    if (k >= 0) {
-        Vector refractedDir = eta * D + (eta * cosi - std::sqrt(k)) * N;
-        Point refract_origin = closest_hit.position + bias * refractedDir;
-        Ray refractedRay(refract_origin, refractedDir.normalized());
-        refractedColor = color(refractedRay, lights, depth + 1);
-    } else {
-        // Reflexão total interna
-        refractedColor = reflectedColor;
-    }
-}
 
 
     // ============================================
     // 7. Combinar cor local, reflexão e refração ponderadamente para cor final
     // ============================================
-    // Peso de reflexão baseado na força do ks
+
+    // Calcula o peso da reflexão com base na intensidade do componente especular (ks)
+    // Quanto maior ks, mais reflexivo o material
     double reflectWeight = std::min(1.0, (mat.ks.x + mat.ks.y + mat.ks.z) / 3.0);
 
-    // Combina cor refratada e local de acordo com opacidade
+    // Combina a cor local com a cor refratada de acordo com a opacidade
     Vector transmitColor = (1.0 - mat.opacity) * refractedColor + mat.opacity * localColor;
 
-    // Combina com reflexão
+    // Combina a cor transmitida com a cor refletida de acordo com o peso da reflexão
     finalColor = (1.0 - reflectWeight) * transmitColor + reflectWeight * reflectedColor;
 
-    // ============================================
+    // Garante que os valores da cor estejam no intervalo [0,1]
     finalColor = clamp_color(finalColor);
 
     return finalColor;
