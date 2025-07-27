@@ -17,7 +17,7 @@ Vector clamp_color(const Vector& color) {
 }
 
 Vector color(const Ray& ray, const SceneLights& lights, int depth = 0) {
-    const int MAX_DEPTH = 5;
+    const int MAX_DEPTH = 3;
     if (depth >= MAX_DEPTH)
         return Vector(0.0);
 
@@ -82,21 +82,21 @@ Vector color(const Ray& ray, const SceneLights& lights, int depth = 0) {
     // ============================================
     Vector refractedColor(0.0);
     if (mat.opacity < 1.0) {
-        Vector N = closest_hit.normal;
-        double eta = 1.0 / mat.ior;
-        double cosi = clamp(dot(ray.direction, N), -1.0, 1.0);
-
+        Vector D = ray.direction.normalized();
+        Vector N = closest_hit.normal.normalized();
+        double eta = 1.0 / mat.ior; // ar para vidro
+        double cosi = clamp(dot(D, N), -1.0, 1.0);
         if (cosi < 0) {
             cosi = -cosi;
         } else {
-            eta = mat.ior;
-            N = -N;
+            eta = mat.ior; // vidro para ar
+            N = -N;        // inverter normal
         }
 
         double k = 1 - eta * eta * (1 - cosi * cosi);
         if (k >= 0) {
-            Vector refractedDir = eta * ray.direction + (eta * cosi - std::sqrt(k)) * N;
-            Point refract_origin = closest_hit.position + bias * N * (dot(ray.direction, N) < 0 ? 1.0 : -1.0);
+            Vector refractedDir = eta * D + (eta * cosi - std::sqrt(k)) * N;
+            Point refract_origin = closest_hit.position + bias * N * (dot(D, N) < 0 ? 1.0 : -1.0);
             Ray refractedRay(refract_origin, refractedDir.normalized());
             refractedColor = color(refractedRay, lights, depth + 1);
         } else {
@@ -110,7 +110,7 @@ Vector color(const Ray& ray, const SceneLights& lights, int depth = 0) {
     // ============================================
     finalColor = (1.0 - mat.opacity) * refractedColor + mat.opacity * localColor;
 
-    double reflectWeight = (mat.ks.x + mat.ks.y + mat.ks.z) / 3.0;
+    double reflectWeight = std::min(1.0, (mat.ks.x + mat.ks.y + mat.ks.z) / 3.0);
     finalColor += reflectWeight * reflectedColor;
 
     // ============================================
