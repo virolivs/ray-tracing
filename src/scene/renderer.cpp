@@ -8,7 +8,22 @@
 
 std::vector<std::shared_ptr<Hittable>> scene;
 
-Vector color(const Ray& ray, const SceneLights& lights) {
+Vector clamp_color(const Vector& color) {
+    return Vector(
+        clamp(color.x, 0.0, 1.0),
+        clamp(color.y, 0.0, 1.0),
+        clamp(color.z, 0.0, 1.0)
+    );
+}
+
+Vector color(const Ray& ray, const SceneLights& lights, int depth = 0) {
+    const int MAX_DEPTH = 5;
+    if (depth >= MAX_DEPTH)
+        return Vector(0.0);
+
+    // ============================================
+    // 1. Encontrar o objeto mais próximo atingido pelo raio
+    // ============================================
     double closest_t = std::numeric_limits<double>::max();
     RT::Trace closest_hit;
     bool any_hit = false;
@@ -22,14 +37,19 @@ Vector color(const Ray& ray, const SceneLights& lights) {
         }
     }
 
+    // ============================================
+    // 2. Caso o raio não acerte nada, retornar cor do "sky gradient"
+    // ============================================
     if (!any_hit) {
         Vector unit_direction = ray.direction.normalized();
         double t = 0.5 * (unit_direction.y + 1.0);
         return Vector(1.0, 1.0, 1.0) * (1.0 - t) + Vector(0.5f, 0.7f, 1.0) * t;
     }
 
+    // ============================================
+    // 3. Determinar material do objeto atingido (se for mesh, pegar material da face)
+    // ============================================
     Material mat;
-
     if (auto mesh = dynamic_cast<const Geometry::Mesh*>(closest_hit.hittable)) {
         int idx = closest_hit.face_index;
         if (idx >= 0 && idx < (int)mesh->materials.size()) {
@@ -41,8 +61,66 @@ Vector color(const Ray& ray, const SceneLights& lights) {
         mat = closest_hit.hittable->material;
     }
 
-    return phongIllumination(closest_hit, ray, lights, scene, mat);
+    // ============================================
+    // 4. Calcular cor local usando modelo de iluminação Phong
+    // ============================================
+    Vector localColor = phongIllumination(closest_hit, ray, lights, scene, mat);
+    Vector finalColor = Vector(0.0);
+
+    // ============================================
+    // 5. Calcular cor da reflexão recursivamente
+    // ============================================
+    Vector reflectedColor(0.0);
+    Vector reflectDir = ray.direction - 2.0 * dot(ray.direction, closest_hit.normal) * closest_hit.normal;
+    double bias = 0.001;
+    Point reflect_origin = closest_hit.position + bias * closest_hit.normal * (dot(ray.direction, closest_hit.normal) < 0 ? 1.0 : -1.0);
+    Ray reflectedRay(reflect_origin, reflectDir.normalized());
+    reflectedColor = color(reflectedRay, lights, depth + 1);
+
+    // ============================================
+    // 6. Calcular cor da refração recursivamente (se material for parcialmente transparente)
+    // ============================================
+    Vector refractedColor(0.0);
+    if (mat.opacity < 1.0) {
+        Vector N = closest_hit.normal;
+        double eta = 1.0 / mat.ior;
+        double cosi = clamp(dot(ray.direction, N), -1.0, 1.0);
+
+        if (cosi < 0) {
+            cosi = -cosi;
+        } else {
+            eta = mat.ior;
+            N = -N;
+        }
+
+        double k = 1 - eta * eta * (1 - cosi * cosi);
+        if (k >= 0) {
+            Vector refractedDir = eta * ray.direction + (eta * cosi - std::sqrt(k)) * N;
+            Point refract_origin = closest_hit.position + bias * N * (dot(ray.direction, N) < 0 ? 1.0 : -1.0);
+            Ray refractedRay(refract_origin, refractedDir.normalized());
+            refractedColor = color(refractedRay, lights, depth + 1);
+        } else {
+            // Reflexão total interna
+            refractedColor = reflectedColor;
+        }
+    }
+
+    // ============================================
+    // 7. Combinar cor local, reflexão e refração ponderadamente para cor final
+    // ============================================
+    finalColor = (1.0 - mat.opacity) * refractedColor + mat.opacity * localColor;
+
+    double reflectWeight = (mat.ks.x + mat.ks.y + mat.ks.z) / 3.0;
+    finalColor += reflectWeight * reflectedColor;
+
+    // ============================================
+    // 8. Garantir que a cor final fique dentro dos limites válidos (0 a 1)
+    // ============================================
+    finalColor = clamp_color(finalColor);
+
+    return finalColor;
 }
+
 
 void render_scene(const Camera& camera,
                   const std::string& filename,
@@ -63,7 +141,7 @@ void render_scene(const Camera& camera,
         for (int i = 0; i < image_width; ++i)
         {
             Ray ray = camera.cast_ray(i, j);
-            Vector pixel_color = color(ray, lights);
+            Vector pixel_color = color(ray, lights, 0);  // chamada recursiva com profundidade 0
             
             int red   = static_cast<int>(255.99 * clamp(pixel_color.x, 0.0, 1.0));
             int green = static_cast<int>(255.99 * clamp(pixel_color.y, 0.0, 1.0));
