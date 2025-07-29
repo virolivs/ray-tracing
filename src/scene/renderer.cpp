@@ -58,7 +58,7 @@ Vector ray_color(const Ray& ray, const SceneLights& lights, int depth = 0) {
     //  Recursive reflection
     Vector reflectedColor(0.0);
     Vector reflectDir = ray.direction - 2.0 * dot(ray.direction, closest_hit.normal) * closest_hit.normal;
-    double bias = 0.001;
+    double bias = 0.000001;
     Point reflect_origin = closest_hit.position + bias * closest_hit.normal * (dot(ray.direction, closest_hit.normal) < 0 ? 1.0 : -1.0);
     Ray reflectedRay(reflect_origin, reflectDir.normalized());
     reflectedColor = ray_color(reflectedRay, lights, depth + 1);
