@@ -202,17 +202,17 @@ public:
 
 
     // Emite um output no terminal para cada face, com seus respectivos pontos (x, y, z)
-    void print_faces() {
-        int i = 0;
-        for (const auto& face : facePoints) {
-            i++;
-            std::cout << "Face " << i << ": ";
-            for (const auto& point : face) {
-                std::cout << "(" << point.x << ", " << point.y << ", " << point.z << ")";;
-            }
-            std::cout << std::endl;
-        }
-    }
+    // void print_faces() {
+    //     int i = 0;
+    //     for (const auto& face : facePoints) {
+    //         i++;
+    //         std::cout << "Face " << i << ": ";
+    //         for (const auto& point : face) {
+    //             std::cout << "(" << point.x << ", " << point.y << ", " << point.z << ")";;
+    //         }
+    //         std::cout << std::endl;
+    //     }
+    //}
 };
 
 #endif

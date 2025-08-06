@@ -16,4 +16,9 @@ public:
     virtual ~Hittable() = default;
 
     virtual RT::Trace hit(const Ray& ray) const = 0;
+
+    virtual const Material& get_material(int index = -1) const {
+        return material;
+    }
+    
 };

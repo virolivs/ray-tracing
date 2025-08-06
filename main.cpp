@@ -35,7 +35,7 @@ int main() {
         Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
 
         SceneLights lights;
-        lights.ambient_color = Vector(0.1f, 0.1f, 0.1f);
+        lights.ambient_color = Vector(0.3f, 0.3f, 0.3f);
         lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0, 1.0, 1.0)));
 
         objReader obj("inputs/cubo.obj");
@@ -56,7 +56,7 @@ int main() {
         render_scene(camera, "outputs/obj_output.ppm", image_width, image_height, lights);
         scene.clear();
     }
-
+    
     // -------------------------------
     // Parte 2: Renderiza Bézier
     // -------------------------------
@@ -81,12 +81,15 @@ int main() {
         }
 
         Material bezier_material(
-            Vector(0.1f, 0.1f, 0.1f),
-            Vector(0.3f, 0.8f, 0.3f),
-            Vector(0.5f),
-            Vector(0.0f),
-            10.0f, 1.0f, 1.0f
+            Vector(1.0f, 0.0f, 0.0f),   // ka: ambiente (avermelhado)
+            Vector(1.0f, 0.0f, 0.0f),   // kd: difusa (VERMELHO PURO)
+            Vector(0.6f, 0.6f, 0.6f),   // ks: especular (branco neutro)
+            Vector(0.0f),               // ke: emissiva (zero)
+            32.0f,                      // ns: shininess (reflexo concentrado)
+            1.0f,                       // ni: índice de refração
+            1.0f                        // d: opacidade total
         );
+
 
         auto bezier_surface = std::make_shared<Geometry::BezierSurface>(
             control_points, 3, 3, bezier_material

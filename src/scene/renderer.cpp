@@ -42,10 +42,10 @@ Vector ray_color(const Ray& ray, const SceneLights& lights, int depth = 0) {
 
     Material mat;
 
-    std::cout << "[DEBUG] ks: " << mat.ks.x << ", " << mat.ks.y << ", " << mat.ks.z << "\n";
-    std::cout << "[DEBUG] kd: " << mat.kd.x << ", " << mat.kd.y << ", " << mat.kd.z << "\n";
-    std::cout << "[DEBUG] ka: " << mat.ka.x << ", " << mat.ka.y << ", " << mat.ka.z << "\n";
-    std::cout << "[DEBUG] ke: " << mat.ke.x << ", " << mat.ke.y << ", " << mat.ke.z << "\n";
+    //std::cout << "[DEBUG] ks: " << mat.ks.x << ", " << mat.ks.y << ", " << mat.ks.z << "\n";
+    //std::cout << "[DEBUG] kd: " << mat.kd.x << ", " << mat.kd.y << ", " << mat.kd.z << "\n";
+    //std::cout << "[DEBUG] ka: " << mat.ka.x << ", " << mat.ka.y << ", " << mat.ka.z << "\n";
+    //std::cout << "[DEBUG] ke: " << mat.ke.x << ", " << mat.ke.y << ", " << mat.ke.z << "\n";
 
 
     // Caso Mesh com materiais por face
@@ -71,7 +71,8 @@ Vector ray_color(const Ray& ray, const SceneLights& lights, int depth = 0) {
     }
 
 
-    Vector localColor = phongIllumination(closest_hit, ray, lights, scene, mat);
+    Vector localColor = phongIllumination(closest_hit, ray, lights, scene);
+
     Vector finalColor = Vector(0.0);
 
     //  Recursive reflection

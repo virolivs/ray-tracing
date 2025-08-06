@@ -59,7 +59,6 @@ namespace Geometry
 
         explicit Triangle(const Point& a, const Point& b, const Point& c, const Material& material, const Hittable* parent)
             : Hittable(material), v0(a), v1(b), v2(c), parent(parent) {}
-    
 
         Triangle() = default;
         Triangle(const Triangle&) = default;
@@ -67,7 +66,16 @@ namespace Geometry
         Triangle& operator=(const Triangle&) = default;
 
         RT::Trace hit(const Ray& ray) const override;
+
+        const Material& get_material(int face_index = -1) const override {
+        if (parent) {
+            return parent->get_material(face_index);
+        }
+        return material;
+    }
+
     };
+
 
     class Mesh : public Hittable
     {
@@ -87,6 +95,14 @@ namespace Geometry
         Mesh& operator=(const Mesh&) = default;
 
         RT::Trace hit(const Ray& ray) const override;
+
+        const Material& get_material(int face_index = -1) const override {
+        if (face_index >= 0 && face_index < static_cast<int>(materials.size())) {
+            return materials[face_index];
+        }
+        return material; // fallback genérico
+    }
+
 
     };
 

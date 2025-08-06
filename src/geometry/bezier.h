@@ -27,6 +27,8 @@ public:
     Point evaluate(double u, double v) const;
     RT::Trace hit(const Ray& ray) const override;
 
+    const Material& get_material(int face_index = -1) const override;
+
 private:
     void build() const;
     
@@ -40,3 +42,4 @@ private:
 };
 
 }
+
