@@ -46,11 +46,12 @@ namespace Geometry
 
         RT::Trace hit(const Ray& ray) const override;
     };
-
+    
     class Triangle : public Hittable
     {
     public:
         Point v0, v1, v2;
+        Vector cached_normal {};  // <- adicione aqui
 
         explicit Triangle(const Point& a, const Point& b, const Point& c, const Material& material)
             : Hittable(material), v0(a), v1(b), v2(c) {}
@@ -62,6 +63,7 @@ namespace Geometry
 
         RT::Trace hit(const Ray& ray) const override;
     };
+
 
     class Mesh : public Hittable
     {

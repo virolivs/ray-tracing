@@ -9,6 +9,7 @@
 
 // Project includes
 #include "src/geometry/geometry.h"
+#include "src/geometry/revolved_bezier.h"
 #include "src/geometry/hittable.h"
 #include "src/lib/ray.h"
 #include "src/lib/point.h"
@@ -21,104 +22,58 @@
 #include "src/matrix/matrixTransforms.h"
 
 int main() {
-    // Image & Camera Setup
-    const uint32_t image_width = 500;
-    const uint32_t image_height = 500;
-    const double vertical_fov = 60.0 * M_PI / 180.0;
-    Point look_at{0.0, 0.0, 0.0};
-    Vector up_vector{0.0, 1.0, 0.0};
-    Point camera_position{3.0, 3.0, 5.0};
-    Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
+    // Configuração da câmera
+    const uint32_t image_width = 500, image_height = 500;
+    Point camera_position(3.0, 3.0, 5.0);
+    Point look_at(0.0, 0.0, 0.0);
+    Vector up(0.0, 1.0, 0.0);
+    double fov = 60.0 * M_PI / 180.0;
 
-    // Load Objects (OBJ)
-    objReader obj("inputs/cubo.obj");
+    Camera camera(camera_position, look_at, up, fov, image_height, image_width);
 
-    // Lighting Setup
-    SceneLights lights;
-    lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
-    lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0, 1.0, 1.0)));
-    lights.lights.push_back(Light(Point(1.0, 2.0, 3.0), Vector(1.0, 1.0, 1.0)));
+    // Luzes da cena
+    SceneLights scene_lights;
+    scene_lights.lights = {
+        Light(Point(10, 10, 10), Vector(1, 1, 1)),
+        Light(Point(-5, 5, 5), Vector(0.5, 0.5, 0.5))
+    };
 
-    // Alternate Camera & Light for Three Spheres + Plane Scene
-    lights.lights.pop_back();  // Remove one light
-    Point alt_camera_position{0.0, 1.5f, 5.0};
-    Camera alt_camera{alt_camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
-    lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(0.5f, 0.5f, 0.5f)));
+    // ---------- Render .OBJ ----------
+    {
+        std::vector<std::shared_ptr<Hittable>> scene;
+        objReader obj("inputs/cubo.obj");
+        auto mesh = std::make_shared<Geometry::Mesh>(obj);
+        scene.push_back(mesh);
 
-    ///////// Materials
+        ::scene = scene;  // se você usa cena global
+        render_scene(camera, "outputs/cubo_obj.ppm", image_width, image_height, scene_lights);
+    }
 
-    // Reflective (mirror-like)
-    Material reflective_material(
-        Vector(0.0f), Vector(0.0f), Vector(1.0f), Vector(0.0f),
-        100.0f, 1.5f, 0.1f
-    );
+    // ---------- Render Bézier girado ----------
+    {
+        std::vector<std::shared_ptr<Hittable>> scene;
 
-    // Refractive (glass-like)
-    Material refractive_material(
-        Vector(0.1f), Vector(0.7f), Vector(0.1f), Vector(0.0f),
-        50.0f, 1.5f, 0.0f
-    );
+        std::vector<Point> curve = {
+            Point(1.0, 0.0, 0.0),
+            Point(0.8, 1.0, 0.0),
+            Point(0.5, 2.0, 0.0),
+            Point(0.0, 3.0, 0.0)
+        };
 
-    // Opaque green
-    Material green_material(
-        Vector(0.0f, 0.3f, 0.0f), Vector(0.0f, 0.7f, 0.0f),
-        Vector(0.0f), Vector(0.1f), 5.0f, 1.0f, 1.0f
-    );
+        Material mat;
+        mat.kd = Vector(0.8, 0.6, 0.3);
+        mat.ka = Vector(0.1, 0.1, 0.1);
+        mat.ks = Vector(0.5, 0.5, 0.5);
+        mat.shininess = 64.0;
 
-    // Opaque gray (floor)
-    Material gray_material(
-        Vector(0.1f), Vector(0.5f), Vector(0.2f), Vector(0.0f),
-        1.0f, 1.0f, 1.0f
-    );
+        auto surface = std::make_shared<Geometry::RevolvedBezierSurface>(curve, 3, mat);
+        surface->set_resolution(60, 80);
 
-    // Opaque red
-    Material red_material(
-        Vector(0.1f, 0.0f, 0.0f), Vector(0.8f, 0.1f, 0.1f),
-        Vector(0.0f), Vector(0.0f), 20.0f, 1.0f, 1.0f
-    );
+        scene.push_back(surface);
 
-    // Opaque blue
-    Material blue_material(
-        Vector(0.0f, 0.0f, 0.3f), Vector(0.0f, 0.0f, 0.7f),
-        Vector(0.0f), Vector(0.0f), 5.0f, 1.0f, 1.0f
-    );
-
-    // Scene Geometry
-    auto mirror_sphere = std::make_shared<Geometry::Sphere>(
-        Point(-1.0, 0.75f, 0.0), 1.0f, reflective_material
-    );
-
-    auto glass_sphere = std::make_shared<Geometry::Sphere>(
-        Point(0.7f, 0.5f, 2.0f), 0.5f, refractive_material
-    );
-
-    auto red_sphere_behind = std::make_shared<Geometry::Sphere>(
-        Point(1.0, 0.5f, -1.0f), 0.8f, red_material
-    );
-
-    auto green_sphere = std::make_shared<Geometry::Sphere>(
-        Point(-1.0, 0.5f, 2.5f), 0.5f, green_material
-    );
-
-    auto small_blue_sphere = std::make_shared<Geometry::Sphere>(
-        Point(0.0f, 0.2f, 3.0f), 0.2f, blue_material
-    );
-
-    auto ground_plane = std::make_shared<Geometry::Plane>(
-        Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), gray_material
-    );
-
-    // Scene Composition
-    scene.push_back(mirror_sphere);
-    scene.push_back(glass_sphere);
-    scene.push_back(red_sphere_behind);
-    scene.push_back(green_sphere);
-    scene.push_back(small_blue_sphere);
-    scene.push_back(ground_plane);
-
-    // Render & Output
-    render_scene(alt_camera, "outputs/output.ppm", image_width, image_height, lights);
-    scene.clear();
+        ::scene = scene;
+        render_scene(camera, "outputs/revolved_bezier.ppm", image_width, image_height, scene_lights);
+    }
 
     return 0;
 }
