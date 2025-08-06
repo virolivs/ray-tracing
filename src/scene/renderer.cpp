@@ -41,6 +41,14 @@ Vector ray_color(const Ray& ray, const SceneLights& lights, int depth = 0) {
     }
 
     Material mat;
+
+    std::cout << "[DEBUG] ks: " << mat.ks.x << ", " << mat.ks.y << ", " << mat.ks.z << "\n";
+    std::cout << "[DEBUG] kd: " << mat.kd.x << ", " << mat.kd.y << ", " << mat.kd.z << "\n";
+    std::cout << "[DEBUG] ka: " << mat.ka.x << ", " << mat.ka.y << ", " << mat.ka.z << "\n";
+    std::cout << "[DEBUG] ke: " << mat.ke.x << ", " << mat.ke.y << ", " << mat.ke.z << "\n";
+
+
+    // Caso Mesh com materiais por face
     if (auto mesh = dynamic_cast<const Geometry::Mesh*>(closest_hit.hittable)) {
         int idx = closest_hit.face_index;
         if (idx >= 0 && idx < (int)mesh->materials.size()) {
@@ -48,9 +56,20 @@ Vector ray_color(const Ray& ray, const SceneLights& lights, int depth = 0) {
         } else {
             mat = closest_hit.hittable->material;
         }
-    } else {
+    }
+    // Caso Triangle com parent (BezierSurface)
+    else if (auto tri = dynamic_cast<const Geometry::Triangle*>(closest_hit.hittable)) {
+        if (tri->parent) {
+            mat = tri->parent->material;
+        } else {
+            mat = tri->material;
+        }
+    }
+    // Qualquer outro objeto
+    else {
         mat = closest_hit.hittable->material;
     }
+
 
     Vector localColor = phongIllumination(closest_hit, ray, lights, scene, mat);
     Vector finalColor = Vector(0.0);

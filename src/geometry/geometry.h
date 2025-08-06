@@ -51,9 +51,15 @@ namespace Geometry
     {
     public:
         Point v0, v1, v2;
+        const Hittable* parent = nullptr;
+        Vector cached_normal = Vector(0, 1, 0);
 
         explicit Triangle(const Point& a, const Point& b, const Point& c, const Material& material)
             : Hittable(material), v0(a), v1(b), v2(c) {}
+
+        explicit Triangle(const Point& a, const Point& b, const Point& c, const Material& material, const Hittable* parent)
+            : Hittable(material), v0(a), v1(b), v2(c), parent(parent) {}
+    
 
         Triangle() = default;
         Triangle(const Triangle&) = default;

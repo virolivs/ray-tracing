@@ -1,15 +1,12 @@
 #define _USE_MATH_DEFINES
 
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <memory>
-#include <limits>
 #include <cmath>
 
 // Project includes
 #include "src/geometry/geometry.h"
-#include "src/geometry/hittable.h"
 #include "src/lib/ray.h"
 #include "src/lib/point.h"
 #include "src/lib/vector.h"
@@ -19,106 +16,87 @@
 #include "src/utils/ObjReader.cpp"
 #include "src/matrix/matrix.h"
 #include "src/matrix/matrixTransforms.h"
+#include "src/geometry/bezier.h"
 
 int main() {
-    // Image & Camera Setup
     const uint32_t image_width = 500;
     const uint32_t image_height = 500;
     const double vertical_fov = 60.0 * M_PI / 180.0;
-    Point look_at{0.0, 0.0, 0.0};
+
     Vector up_vector{0.0, 1.0, 0.0};
-    Point camera_position{3.0, 3.0, 5.0};
-    Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
+    Point look_at{0.0, 0.0, 0.0};
 
-    // Load Objects (OBJ)
-    objReader obj("inputs/cubo.obj");
+    // -------------------------------
+    // Parte 1: Renderiza o .OBJ
+    // -------------------------------
 
-    // Lighting Setup
-    SceneLights lights;
-    lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
-    lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0, 1.0, 1.0)));
-    lights.lights.push_back(Light(Point(1.0, 2.0, 3.0), Vector(1.0, 1.0, 1.0)));
+    {
+        Point camera_position{3.0, 3.0, 5.0};
+        Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
 
-    // Alternate Camera & Light for Three Spheres + Plane Scene
-    lights.lights.pop_back();  // Remove one light
-    Point alt_camera_position{0.0, 1.5f, 5.0};
-    Camera alt_camera{alt_camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
-    lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(0.5f, 0.5f, 0.5f)));
+        SceneLights lights;
+        lights.ambient_color = Vector(0.1f, 0.1f, 0.1f);
+        lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0, 1.0, 1.0)));
 
-    ///////// Materials
+        objReader obj("inputs/cubo.obj");
 
-    // Reflective (mirror-like)
-    Material reflective_material(
-        Vector(0.0f), Vector(0.0f), Vector(1.0f), Vector(0.0f),
-        100.0f, 1.5f, 0.1f
-    );
+        const auto& faces = obj.getFaces();
+        const auto& vertices = obj.getVertices();
 
-    // Refractive (glass-like)
-    Material refractive_material(
-        Vector(0.1f), Vector(0.7f), Vector(0.1f), Vector(0.0f),
-        50.0f, 1.5f, 0.0f
-    );
+        for (const auto& face : faces) {
+            Point p1 = vertices[face.verticeIndice[0]];
+            Point p2 = vertices[face.verticeIndice[1]];
+            Point p3 = vertices[face.verticeIndice[2]];
 
-    // Opaque green
-    Material green_material(
-        Vector(0.0f, 0.3f, 0.0f), Vector(0.0f, 0.7f, 0.0f),
-        Vector(0.0f), Vector(0.1f), 5.0f, 1.0f, 1.0f
-    );
+            Material m(face.ka, face.kd, face.ks, face.ke, face.ns, face.ni, face.d);
+            auto triangle = std::make_shared<Geometry::Triangle>(p1, p2, p3, m);
+            scene.push_back(triangle);
+        }
 
-    // Opaque gray (floor)
-    Material gray_material(
-        Vector(0.1f), Vector(0.5f), Vector(0.2f), Vector(0.0f),
-        1.0f, 1.0f, 1.0f
-    );
+        render_scene(camera, "outputs/obj_output.ppm", image_width, image_height, lights);
+        scene.clear();
+    }
 
-    // Opaque red
-    Material red_material(
-        Vector(0.1f, 0.0f, 0.0f), Vector(0.8f, 0.1f, 0.1f),
-        Vector(0.0f), Vector(0.0f), 20.0f, 1.0f, 1.0f
-    );
+    // -------------------------------
+    // Parte 2: Renderiza Bézier
+    // -------------------------------
 
-    // Opaque blue
-    Material blue_material(
-        Vector(0.0f, 0.0f, 0.3f), Vector(0.0f, 0.0f, 0.7f),
-        Vector(0.0f), Vector(0.0f), 5.0f, 1.0f, 1.0f
-    );
+    {
+        Point camera_position{4.0, 4.0, 6.0};
+        Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
 
-    // Scene Geometry
-    auto mirror_sphere = std::make_shared<Geometry::Sphere>(
-        Point(-1.0, 0.75f, 0.0), 1.0f, reflective_material
-    );
+        SceneLights lights;
+        lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
+        lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0f, 1.0f, 1.0f)));
 
-    auto glass_sphere = std::make_shared<Geometry::Sphere>(
-        Point(0.7f, 0.5f, 2.0f), 0.5f, refractive_material
-    );
+        // Gera pontos de controle (cúpula)
+        std::vector<std::vector<Point>> control_points(4, std::vector<Point>(4));
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                double x = (i - 1.5);
+                double y = (j - 1.5);
+                double z = std::cos((x * x + y * y) * 0.7);
+                control_points[i][j] = Point(x, z, y);
+            }
+        }
 
-    auto red_sphere_behind = std::make_shared<Geometry::Sphere>(
-        Point(1.0, 0.5f, -1.0f), 0.8f, red_material
-    );
+        Material bezier_material(
+            Vector(0.1f, 0.1f, 0.1f),
+            Vector(0.3f, 0.8f, 0.3f),
+            Vector(0.5f),
+            Vector(0.0f),
+            10.0f, 1.0f, 1.0f
+        );
 
-    auto green_sphere = std::make_shared<Geometry::Sphere>(
-        Point(-1.0, 0.5f, 2.5f), 0.5f, green_material
-    );
+        auto bezier_surface = std::make_shared<Geometry::BezierSurface>(
+            control_points, 3, 3, bezier_material
+        );
 
-    auto small_blue_sphere = std::make_shared<Geometry::Sphere>(
-        Point(0.0f, 0.2f, 3.0f), 0.2f, blue_material
-    );
+        scene.push_back(bezier_surface);
 
-    auto ground_plane = std::make_shared<Geometry::Plane>(
-        Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), gray_material
-    );
-
-    // Scene Composition
-    scene.push_back(mirror_sphere);
-    scene.push_back(glass_sphere);
-    scene.push_back(red_sphere_behind);
-    scene.push_back(green_sphere);
-    scene.push_back(small_blue_sphere);
-    scene.push_back(ground_plane);
-
-    // Render & Output
-    render_scene(alt_camera, "outputs/output.ppm", image_width, image_height, lights);
-    scene.clear();
+        render_scene(camera, "outputs/bezier_output.ppm", image_width, image_height, lights);
+        scene.clear();
+    }
 
     return 0;
 }
