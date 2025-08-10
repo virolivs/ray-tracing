@@ -25,42 +25,8 @@ int main() {
 
     Vector up_vector{0.0, 1.0, 0.0};
     Point look_at{0.0, 0.0, 0.0};
-
-    // -------------------------------
-    // Parte 1: Renderiza o .OBJ
-    // -------------------------------
-
-    {
-        Point camera_position{3.0, 3.0, 5.0};
-        Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
-
-        SceneLights lights;
-        lights.ambient_color = Vector(0.3f, 0.3f, 0.3f);
-        lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0, 1.0, 1.0)));
-
-        objReader obj("inputs/cubo.obj");
-
-        const auto& faces = obj.getFaces();
-        const auto& vertices = obj.getVertices();
-
-        for (const auto& face : faces) {
-            Point p1 = vertices[face.verticeIndice[0]];
-            Point p2 = vertices[face.verticeIndice[1]];
-            Point p3 = vertices[face.verticeIndice[2]];
-
-            Material m(face.ka, face.kd, face.ks, face.ke, face.ns, face.ni, face.d);
-            auto triangle = std::make_shared<Geometry::Triangle>(p1, p2, p3, m);
-            scene.push_back(triangle);
-        }
-
-        render_scene(camera, "outputs/obj_output.ppm", image_width, image_height, lights);
-        scene.clear();
-    }
     
-    // -------------------------------
-    // Parte 2: Renderiza Bézier
-    // -------------------------------
-
+// Exemplo 1
     {
         Point camera_position{4.0, 4.0, 6.0};
         Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
@@ -69,37 +35,160 @@ int main() {
         lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
         lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0f, 1.0f, 1.0f)));
 
-        // Gera pontos de controle (cúpula)
         std::vector<std::vector<Point>> control_points(4, std::vector<Point>(4));
         for (int i = 0; i < 4; ++i) {
             for (int j = 0; j < 4; ++j) {
                 double x = (i - 1.5);
                 double y = (j - 1.5);
                 double z = std::cos((x * x + y * y) * 0.7);
+                control_points[i][j] = Point(x, z, y); // altura no eixo Y (mantém seu mapeamento)
+            }
+        }
+
+        Material bezier_material(
+            Vector(1.0f, 0.0f, 0.0f),   // ka
+            Vector(1.0f, 0.0f, 0.0f),   // kd
+            Vector(0.6f, 0.6f, 0.6f),   // ks
+            Vector(0.0f),               // ke
+            32.0f, 1.0f, 1.0f
+        );
+
+        auto bezier_surface = std::make_shared<Geometry::BezierSurface>(control_points, 3, 3, bezier_material);
+        scene.push_back(bezier_surface);
+        render_scene(camera, "outputs/bezier_dome.ppm", image_width, image_height, lights);
+        scene.clear();
+    }
+
+    // Exemplo 2
+    {
+        Point camera_position{4.0, 4.0, 6.0};
+        Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
+
+        SceneLights lights;
+        lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
+        lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0f, 1.0f, 1.0f)));
+
+        std::vector<std::vector<Point>> control_points(4, std::vector<Point>(4));
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                double x = (i - 1.5);
+                double y = (j - 1.5);
+                double z = 0.5 * (x*x - y*y);
                 control_points[i][j] = Point(x, z, y);
             }
         }
 
         Material bezier_material(
-            Vector(1.0f, 0.0f, 0.0f),   // ka: ambiente (avermelhado)
-            Vector(1.0f, 0.0f, 0.0f),   // kd: difusa (VERMELHO PURO)
-            Vector(0.6f, 0.6f, 0.6f),   // ks: especular (branco neutro)
-            Vector(0.0f),               // ke: emissiva (zero)
-            32.0f,                      // ns: shininess (reflexo concentrado)
-            1.0f,                       // ni: índice de refração
-            1.0f                        // d: opacidade total
+            Vector(0.0f, 0.8f, 0.0f),
+            Vector(0.0f, 1.0f, 0.0f),
+            Vector(0.6f, 0.6f, 0.6f),
+            Vector(0.0f),
+            32.0f, 1.0f, 1.0f
         );
 
-
-        auto bezier_surface = std::make_shared<Geometry::BezierSurface>(
-            control_points, 3, 3, bezier_material
-        );
-
+        auto bezier_surface = std::make_shared<Geometry::BezierSurface>(control_points, 3, 3, bezier_material);
         scene.push_back(bezier_surface);
-
-        render_scene(camera, "outputs/bezier_output.ppm", image_width, image_height, lights);
+        render_scene(camera, "outputs/bezier_saddle.ppm", image_width, image_height, lights);
         scene.clear();
     }
 
-    return 0;
+    // Exemplo 3
+    {
+        Point camera_position{4.0, 4.0, 6.0};
+        Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
+
+        SceneLights lights;
+        lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
+        lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0f, 1.0f, 1.0f)));
+
+        std::vector<std::vector<Point>> control_points(4, std::vector<Point>(4));
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                double x = (i - 1.5);
+                double y = (j - 1.5);
+                double z = 0.4 * (x*x + y*y);
+                control_points[i][j] = Point(x, z, y);
+            }
+        }
+
+        Material bezier_material(
+            Vector(0.0f, 0.0f, 0.8f),
+            Vector(0.0f, 0.0f, 1.0f),
+            Vector(0.6f, 0.6f, 0.6f),
+            Vector(0.0f),
+            32.0f, 1.0f, 1.0f
+        );
+
+        auto bezier_surface = std::make_shared<Geometry::BezierSurface>(control_points, 3, 3, bezier_material);
+        scene.push_back(bezier_surface);
+        render_scene(camera, "outputs/bezier_bowl.ppm", image_width, image_height, lights);
+        scene.clear();
+    }
+
+    // Exemplo 4
+    {
+        Point camera_position{4.0, 4.0, 6.0};
+        Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
+
+        SceneLights lights;
+        lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
+        lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0f, 1.0f, 1.0f)));
+
+        std::vector<std::vector<Point>> control_points(4, std::vector<Point>(4));
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                double x = (i - 1.5);
+                double y = (j - 1.5);
+                double z = 0.6 * std::sin(1.2 * x) * std::cos(1.2 * y);
+                control_points[i][j] = Point(x, z, y);
+            }
+        }
+
+        Material bezier_material(
+            Vector(0.9f, 0.6f, 0.0f),
+            Vector(1.0f, 0.7f, 0.0f),
+            Vector(0.6f, 0.6f, 0.6f),
+            Vector(0.0f),
+            32.0f, 1.0f, 1.0f
+        );
+
+        auto bezier_surface = std::make_shared<Geometry::BezierSurface>(control_points, 3, 3, bezier_material);
+        scene.push_back(bezier_surface);
+        render_scene(camera, "outputs/bezier_wave.ppm", image_width, image_height, lights);
+        scene.clear();
+    }
+
+    // Exemplo 5
+    {
+        Point camera_position{4.0, 4.0, 6.0};
+        Camera camera{camera_position, look_at, up_vector, vertical_fov, image_height, image_width};
+
+        SceneLights lights;
+        lights.ambient_color = Vector(0.2f, 0.2f, 0.2f);
+        lights.lights.push_back(Light(Point(5.0, 5.0, 5.0), Vector(1.0f, 1.0f, 1.0f)));
+
+        std::vector<std::vector<Point>> control_points(4, std::vector<Point>(4));
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                double x = (i - 1.5);
+                double y = (j - 1.5);
+                double r2 = x*x + y*y;
+                double z = std::exp(-0.9 * r2);
+                control_points[i][j] = Point(x, z, y);
+            }
+        }
+
+        Material bezier_material(
+            Vector(0.6f, 0.0f, 0.8f),
+            Vector(0.7f, 0.0f, 1.0f),
+            Vector(0.6f, 0.6f, 0.6f),
+            Vector(0.0f),
+            32.0f, 1.0f, 1.0f
+        );
+
+        auto bezier_surface = std::make_shared<Geometry::BezierSurface>(control_points, 3, 3, bezier_material);
+        scene.push_back(bezier_surface);
+        render_scene(camera, "outputs/bezier_gauss.ppm", image_width, image_height, lights);
+        scene.clear();
+    }
 }
