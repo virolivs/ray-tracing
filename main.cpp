@@ -35,7 +35,7 @@ int main() {
         Light(Point(-5, 5, 5),   Vector(0.5, 0.5, 0.5))
     };
 
-    // Exemplo 1 
+    // Example 1 
     {
         std::vector<std::shared_ptr<Hittable>> scene;
         std::vector<Point> curve = {
@@ -55,10 +55,10 @@ int main() {
         scene.push_back(surface);
 
         ::scene = scene;
-        render_scene(camera, "outputs/figura1.ppm", image_width, image_height, scene_lights);
+        render_scene(camera, "outputs/figure1.ppm", image_width, image_height, scene_lights);
     }
 
-    // Exemplo 2
+    // Example 2
     {
         std::vector<std::shared_ptr<Hittable>> scene;
         std::vector<Point> curve = {
@@ -78,10 +78,10 @@ int main() {
         scene.push_back(surface);
 
         ::scene = scene;
-        render_scene(camera, "outputs/figura2.ppm", image_width, image_height, scene_lights);
+        render_scene(camera, "outputs/figure2.ppm", image_width, image_height, scene_lights);
     }
 
-    // Exemplo 3 
+    // Example 3 
     {
         std::vector<std::shared_ptr<Hittable>> scene;
         std::vector<Point> curve = {
@@ -101,10 +101,10 @@ int main() {
         scene.push_back(surface);
 
         ::scene = scene;
-        render_scene(camera, "outputs/figura3.ppm", image_width, image_height, scene_lights);
+        render_scene(camera, "outputs/figure3.ppm", image_width, image_height, scene_lights);
     }
 
-    // Exemplo 4
+    // Example 4
     {
         std::vector<std::shared_ptr<Hittable>> scene;
         std::vector<Point> curve = {
@@ -124,10 +124,10 @@ int main() {
         scene.push_back(surface);
 
         ::scene = scene;
-        render_scene(camera, "outputs/figura4.ppm", image_width, image_height, scene_lights);
+        render_scene(camera, "outputs/figure4.ppm", image_width, image_height, scene_lights);
     }
 
-    // Exemplo 5
+    // Example 5
     {
         std::vector<std::shared_ptr<Hittable>> scene;
         std::vector<Point> curve = {
@@ -147,7 +147,7 @@ int main() {
         scene.push_back(surface);
 
         ::scene = scene;
-        render_scene(camera, "outputs/figura5.ppm", image_width, image_height, scene_lights);
+        render_scene(camera, "outputs/figure5.ppm", image_width, image_height, scene_lights);
     }
 
 
